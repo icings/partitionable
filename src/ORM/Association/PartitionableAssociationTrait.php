@@ -48,8 +48,13 @@ trait PartitionableAssociationTrait
     /**
      * Sets the partition limit.
      *
+     * A limit of `1` will automatically enable the single result mode.
+     *
      * @param int|null $limit The limit.
      * @return $this
+     * @see enableSingleResult()
+     * @see disableSingleResult()
+     * @see isSingleResultEnabled()
      */
     public function setLimit(?int $limit)
     {
@@ -65,8 +70,7 @@ trait PartitionableAssociationTrait
 
         $this->limit = $limit;
 
-        // Enable single results mode for a limit of 1, unless
-        // single results mode has been explicitly disabled.
+        // Enable single results mode for a limit of 1.
         if (
             $limit === 1 &&
             !$this->isSingleResultEnabled()
@@ -74,8 +78,7 @@ trait PartitionableAssociationTrait
             $this->enableSingleResult();
         }
 
-        // Disable single results mode for a limit greater than 1,
-        // unless single results mode has been explicitly enabled.
+        // Disable single results mode for a limit greater than 1.
         if (
             $limit > 1 &&
             $this->isSingleResultEnabled()
@@ -129,7 +132,10 @@ trait PartitionableAssociationTrait
     /**
      * Enables the single result mode.
      *
+     * Enabling this mode will automatically set the limit to `1`.
+     *
      * @return $this
+     * @see setLimit()
      */
     public function enableSingleResult()
     {
@@ -191,6 +197,14 @@ trait PartitionableAssociationTrait
 
         if (isset($opts['filterStrategy'])) {
             $this->setFilterStrategy($opts['filterStrategy']);
+        }
+
+        if (isset($opts['singleResult'])) {
+            if ($opts['singleResult']) {
+                $this->enableSingleResult();
+            } else {
+                $this->disableSingleResult();
+            }
         }
     }
 

@@ -14,6 +14,7 @@ use Cake\Database\Driver\Sqlserver;
 use Cake\Database\Expression\CommonTableExpression;
 use Cake\Database\Expression\OrderClauseExpression;
 use Cake\I18n\I18n;
+use Cake\ORM\Association;
 use Cake\ORM\Behavior\Translate\EavStrategy;
 use Cake\ORM\Behavior\Translate\ShadowTableStrategy;
 use Cake\ORM\Query;
@@ -78,15 +79,36 @@ class PartitionedHasManyTest extends TestCase
 
         $this->assertNull($association->getLimit());
         $this->assertSame(PartitionableHasMany::FILTER_IN_SUBQUERY_TABLE, $association->getFilterStrategy());
+        $this->assertFalse($association->isSingleResultEnabled());
 
         $this->_articlesTable->associations()->removeAll();
         $association = $this->_articlesTable->partitionableBelongsToMany('TopComments', [
             'limit' => 10,
             'filterStrategy' => PartitionableHasMany::FILTER_INNER_JOIN_SUBQUERY,
+            'singleResult' => false,
         ]);
 
         $this->assertSame(10, $association->getLimit());
         $this->assertSame(PartitionableHasMany::FILTER_INNER_JOIN_SUBQUERY, $association->getFilterStrategy());
+        $this->assertFalse($association->isSingleResultEnabled());
+
+        $this->_articlesTable->associations()->removeAll();
+        $association = $this->_articlesTable->partitionableBelongsToMany('TopComments', [
+            'limit' => 10,
+            'singleResult' => true,
+        ]);
+
+        $this->assertSame(1, $association->getLimit());
+        $this->assertTrue($association->isSingleResultEnabled());
+
+        $this->_articlesTable->associations()->removeAll();
+        $association = $this->_articlesTable->partitionableBelongsToMany('TopComments', [
+            'limit' => 1,
+            'singleResult' => false,
+        ]);
+
+        $this->assertSame(1, $association->getLimit());
+        $this->assertFalse($association->isSingleResultEnabled());
     }
 
     public function testInvalidLimit(): void
@@ -116,7 +138,7 @@ class PartitionedHasManyTest extends TestCase
         $this->assertFalse($association->isSingleResultEnabled());
     }
 
-    public function testEnabledSingleResultSetsLimit(): void
+    public function testEnableSingleResultSetsLimit(): void
     {
         /** @var PartitionableHasMany $association */
         $association = $this->_articlesTable->getAssociation('TopComments');
@@ -126,6 +148,21 @@ class PartitionedHasManyTest extends TestCase
         $association
             ->enableSingleResult();
         $this->assertSame(1, $association->getLimit());
+    }
+
+    public function testEnableSingleResultAffectsTypeAndPropertyName(): void
+    {
+        /** @var PartitionableHasMany $association */
+        $association = $this->_articlesTable->getAssociation('TopComments');
+
+        $this->assertSame(Association::ONE_TO_MANY, $association->type());
+        $this->assertSame('top_comments', (clone $association)->getProperty());
+
+        $association
+            ->enableSingleResult();
+
+        $this->assertSame(Association::ONE_TO_ONE, $association->type());
+        $this->assertSame('top_comment', $association->getProperty());
     }
 
     public function testInvalidStrategy(): void

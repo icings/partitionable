@@ -150,8 +150,8 @@ $this->Articles->TopComments
 
 ### Limiting to a single result
 
-When setting the limit to `1`, the associations will automatically switch to using singular property names (if no
-custom property name has been explicitly set), and non-nested results.
+When setting the limit to `1`, the associations will automatically switch to using singular property names (if no 
+property name has been set yet), and non-nested results.
 
 For example, limiting this association to `1`:
 
