@@ -1,6 +1,21 @@
 # Partitionable
 
-![stability-unstable](https://img.shields.io/badge/stability-unstable-yellow.svg)
+![Stability][ico-stability]
+[![Build Status][ico-build]][link-build]
+[![Coverage Status][ico-coverage]][link-coverage]
+[![Latest Version][ico-version]][link-version]
+[![Software License][ico-license]][link-license]
+
+[ico-stability]: https://img.shields.io/badge/stability-experimental-orange.svg?style=flat-square
+[ico-build]: https://img.shields.io/github/workflow/status/icings/partitionable/CI/master?style=flat-square
+[ico-coverage]: https://img.shields.io/codecov/c/github/icings/partitionable.svg?style=flat-square
+[ico-version]: https://img.shields.io/packagist/v/icings/partitionable.svg?style=flat-square&label=latest
+[ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
+
+[link-build]: https://github.com/icings/partitionable/actions/workflows/ci.yml?query=branch%3Amaster
+[link-coverage]: https://codecov.io/github/icings/partitionable
+[link-version]: https://packagist.org/packages/icings/partitionable
+[link-license]: LICENSE.txt
 
 A set of partitionable associations for the CakePHP ORM, allowing for basic limiting per group.
 
