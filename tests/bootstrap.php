@@ -53,7 +53,7 @@ date_default_timezone_set('UTC');
 mb_internal_encoding(Configure::read('App.encoding'));
 ini_set('intl.default_locale', Configure::read('App.defaultLocale'));
 
-if (!getenv('db_dsn')) {
-    putenv('db_dsn=sqlite:///:memory:');
+if (!getenv('DATABASE_URL')) {
+    putenv('DATABASE_URL=sqlite:///:memory:');
 }
-ConnectionManager::setConfig('test', ['url' => getenv('db_dsn')]);
+ConnectionManager::setConfig('test', ['url' => getenv('DATABASE_URL')]);

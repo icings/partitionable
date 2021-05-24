@@ -116,11 +116,11 @@ jobs:
 
       - name: Run PHPUnit
         run: |
-          if [[ ${{ matrix.db-type }} == 'sqlite' ]]; then export DB_URL='sqlite:///:memory:'; fi
-          if [[ ${{ matrix.db-type }} == 'mysql' ]]; then export DB_URL='mysql://root:root@127.0.0.1/test'; fi
-          if [[ ${{ matrix.db-type }} == 'mariadb' ]]; then export DB_URL='mysql://root:root@127.0.0.1/test'; fi
-          if [[ ${{ matrix.db-type }} == 'pgsql' ]]; then export DB_URL='postgres://postgres:postgres@127.0.0.1/postgres'; fi
-          if [[ ${{ matrix.db-type }} == 'sqlsrv' ]]; then export DB_URL='sqlserver://sa:Sql!Server@127.0.0.1/test'; fi
+          if [[ ${{ matrix.db-type }} == 'sqlite' ]]; then export DATABASE_URL='sqlite:///:memory:'; fi
+          if [[ ${{ matrix.db-type }} == 'mysql' ]]; then export DATABASE_URL='mysql://root:root@127.0.0.1/test'; fi
+          if [[ ${{ matrix.db-type }} == 'mariadb' ]]; then export DATABASE_URL='mysql://root:root@127.0.0.1/test'; fi
+          if [[ ${{ matrix.db-type }} == 'pgsql' ]]; then export DATABASE_URL='postgres://postgres:postgres@127.0.0.1/postgres'; fi
+          if [[ ${{ matrix.db-type }} == 'sqlsrv' ]]; then export DATABASE_URL='sqlserver://sa:Sql!Server@127.0.0.1/test'; fi
 
           if [[ ${{ matrix.php-version }} == '7.4' && ${{ matrix.cakephp-version }} == 'latest' ]]; then
             composer test-coverage
