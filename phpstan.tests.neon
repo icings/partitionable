@@ -1,0 +1,29 @@
+parameters:
+    checkMissingIterableValueType: false
+    bootstrapFiles:
+        - tests/bootstrap.php
+    ignoreErrors:
+        -
+            message: "#^Parameter \\#1 \\$table of method Cake\\\\Database\\\\Query\\:\\:leftJoin\\(\\) expects array\\<string\\>\\|string, array\\<string, Cake\\\\Database\\\\Query\\> given\\.$#"
+            count: 1
+            path: tests/TestCase/ORM/Association/PartitionedBelongsToManyTest.php
+
+        -
+            message: "#^Parameter \\#2 \\$results of method Icings\\\\Partitionable\\\\Test\\\\TestCase\\:\\:assertResultsEqualFile\\(\\) expects array, array\\|Cake\\\\Datasource\\\\EntityInterface given\\.$#"
+            count: 1
+            path: tests/TestCase/ORM/Association/PartitionedBelongsToManyTest.php
+
+        -
+            message: "#^Parameter \\#1 \\$table of method Cake\\\\Database\\\\Query\\:\\:leftJoin\\(\\) expects array\\<string\\>\\|string, array\\<string, Cake\\\\Database\\\\Query\\> given\\.$#"
+            count: 1
+            path: tests/TestCase/ORM/Association/PartitionedHasManyTest.php
+
+        -
+            message: "#^Call to an undefined method object\\:\\:enableAutoQuoting\\(\\)\\.$#"
+            count: 2
+            path: tests/TestCase/TestSuite.php
+
+        -
+            message: "#^Unsafe usage of new static\\(\\)\\.$#"
+            count: 1
+            path: tests/TestCase/TestSuite.php

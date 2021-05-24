@@ -1,0 +1,61 @@
+{
+    "name": "icings/partitionable",
+    "type": "library",
+    "description": "Partitionable associations for the CakePHP ORM, allowing for basic limiting per group.",
+    "keywords": [
+        "cakephp", "database", "orm", "associations", "limit", "greatest-n-per-group"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Oliver Nowak",
+            "role": "Author",
+            "homepage": "https://ndm.li"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.2",
+        "cakephp/orm": "^4.1"
+    },
+    "require-dev": {
+        "cakephp/cakephp": "^4.1",
+        "cakephp/cakephp-codesniffer": "^4.1",
+        "phpunit/phpunit": "^8.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Icings\\Partitionable\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Icings\\Partitionable\\Test\\": "tests/",
+            "Icings\\Partitionable\\Test\\TestApp\\": "tests/TestApp/src/",
+            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
+        }
+    },
+    "scripts": {
+        "check": [
+            "@cs-check -- -p",
+            "@test"
+        ],
+        "cs-check": "phpcs --parallel=16 ./src ./tests",
+        "cs-fix": "phpcbf --parallel=16 -p ./src ./tests",
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-clover=coverage.xml",
+        "stan-setup": "cp composer.json composer.backup && composer require --dev \"phpstan/phpstan:^0.12.0\" \"psalm/phar:^4.0\" && mv composer.backup composer.json",
+        "stan": [
+            "@phpstan-src",
+            "@phpstan-tests",
+            "@psalm"
+        ],
+        "phpstan": [
+            "@phpstan-src",
+            "@phpstan-tests"
+        ],
+        "phpstan-src": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 7 -c ./phpstan.src.neon ./src",
+        "phpstan-tests": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 7 -c ./phpstan.tests.neon ./tests",
+        "psalm": "php ./vendor/psalm/phar/psalm.phar"
+    }
+}

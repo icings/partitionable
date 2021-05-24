@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  tests:
+    runs-on: ${{ fromJSON('["ubuntu-18.04", "ubuntu-20.04"]')[matrix.db-type == 'sqlite'] }}
+    strategy:
+      fail-fast: false
+      matrix:
+        db-type: [sqlite, mysql, mariadb, pgsql, sqlsrv]
+        php-version: ['7.2', '7.4', '8.0']
+        cakephp-version: ['4.1.0', 'latest']
+        exclude:
+          - php-version: '7.2'
+            cakephp-version: 'latest'
+          - php-version: '7.4'
+            cakephp-version: '4.1.0'
+          - php-version: '8.0'
+            cakephp-version: '4.1.0'
+
+    name: |
+      ${{
+        format(
+          '{0} - PHP {1} - CakePHP {2}{3}',
+          matrix.db-type,
+          matrix.php-version,
+          matrix.cakephp-version,
+          fromJSON('["", " - Coverage"]')[matrix.php-version == '7.4' && matrix.cakephp-version == 'latest']
+        )
+      }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup MySQL latest
+        if: matrix.db-type == 'mysql'
+        run: >
+          docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test -p 3306:3306 -d mysql
+          --default-authentication-plugin=mysql_native_password --disable-log-bin --wait_timeout=240 --connect_timeout=240
+          --max_allowed_packet=128M
+
+      - name: Setup MariaDB latest
+        if: matrix.db-type == 'mariadb' && matrix.php-version != '7.2'
+        run: >
+          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb
+          --disable-log-bin --wait_timeout=240 --connect_timeout=240 --max_allowed_packet=128M
+
+      - name: Setup MariaDB lowest (10.2)
+        if: matrix.db-type == 'mariadb' && matrix.php-version == '7.2'
+        run: >
+          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb:10.2
+          --disable-log-bin --wait_timeout=240 --connect_timeout=240 --max_allowed_packet=128M
+
+      - name: Setup PostgreSQL latest
+        if: matrix.db-type == 'pgsql' && matrix.php-version != '7.2'
+        run: docker run --rm --name=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=test -p 5432:5432 -d postgres
+
+      - name: Setup PostgreSQL lowest (9.4)
+        if: matrix.db-type == 'pgsql' && matrix.php-version == '7.2'
+        run: docker run --rm --name=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=test -p 5432:5432 -d postgres:9.4
+
+      - name: Setup SQL Server 2019
+        if: matrix.db-type == 'sqlsrv' && matrix.php-version != '7.2'
+        run: |
+          docker run --rm --name=sqlsrv -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Sql!Server' -e 'MSSQL_PID=Express' -p 1433:1433 \
+            -d mcr.microsoft.com/mssql/server:2019-CU10-ubuntu-20.04
+          sleep 10
+          docker exec sqlsrv /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Sql!Server -Q "create database test;"
+
+      - name: Setup SQL Server 2017
+        if: matrix.db-type == 'sqlsrv' && matrix.php-version == '7.2'
+        run: |
+          docker run --rm --name=sqlsrv -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Sql!Server' -e 'MSSQL_PID=Express' -p 1433:1433 \
+            -d mcr.microsoft.com/mssql/server:2017-CU22-ubuntu-16.04
+          sleep 10
+          docker exec sqlsrv /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Sql!Server' -Q "create database test;"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, intl, pdo_${{ fromJSON(format('["{0}", "mysql"]', matrix.db-type))[matrix.db-type == 'mariadb'] }}
+          coverage: pcov
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Get date part for cache key
+        id: key-date
+        run: echo "::set-output name=date::$(date +'%Y-%m')"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
+
+      - name: Composer install
+        run: |
+          if [[ ${{ matrix.cakephp-version }} != 'latest' ]]; then
+            composer require --no-update cakephp/cakephp:~${{ matrix.cakephp-version }}
+          fi
+          composer install --optimize-autoloader
+
+      - name: Setup problem matchers for PHPUnit
+        if: matrix.php-version != '7.4' && matrix.cakephp-version != 'latest'
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Run PHPUnit
+        run: |
+          if [[ ${{ matrix.db-type }} == 'sqlite' ]]; then export DB_URL='sqlite:///:memory:'; fi
+          if [[ ${{ matrix.db-type }} == 'mysql' ]]; then export DB_URL='mysql://root:root@127.0.0.1/test'; fi
+          if [[ ${{ matrix.db-type }} == 'mariadb' ]]; then export DB_URL='mysql://root:root@127.0.0.1/test'; fi
+          if [[ ${{ matrix.db-type }} == 'pgsql' ]]; then export DB_URL='postgres://postgres:postgres@127.0.0.1/postgres'; fi
+          if [[ ${{ matrix.db-type }} == 'sqlsrv' ]]; then export DB_URL='sqlserver://sa:Sql!Server@127.0.0.1/test'; fi
+
+          if [[ ${{ matrix.php-version }} == '7.4' && ${{ matrix.cakephp-version }} == 'latest' ]]; then
+            composer test-coverage
+          else
+            composer test
+          fi
+
+      - name: Code Coverage Report
+        if: success() && matrix.php-version == '7.4' && matrix.cakephp-version == 'latest'
+        uses: codecov/codecov-action@v1
+
+  cs-stan:
+    name: Coding Standards & Static Analysis
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, intl
+          coverage: none
+          tools: cs2pr
+
+      - name: Composer Install
+        run: composer stan-setup
+
+      - name: Run phpcs
+        run: composer cs-check -- --parallel=1 --report=checkstyle | cs2pr
+
+      - name: Run psalm
+        run: composer psalm -- --output-format=github
+
+      - name: Run phpstan (src)
+        run: composer phpstan-src -- --error-format=github
+
+      - name: Run phpstan (tests)
+        run: composer phpstan-tests -- --error-format=github
