@@ -116,6 +116,30 @@ class StudentsTable extends \Cake\ORM\Table
 
 This would select the 3 highest graduated courses for each student.
 
+### Using options to configure the associations
+
+Additionally to the chained method call syntax, options as known from the built-in associations are supported too,
+specifically the following options are supported for both `partitionableHasMany()` as well as
+`partitionableBelongsToMany()`:
+
+* `limit` (`int|null`)
+* `singleResult` (`bool`)
+* `filterStrategy` (`string`)
+
+```php
+$this
+    ->partitionableHasMany('TopComments', [
+        'className' => 'Comments',
+        'limit' => 1,
+        'singleResult' => false,
+        'filterStrategy' => \Icings\Partitionable\ORM\Association\PartitionableHasMany::FILTER_IN_SUBQUERY_TABLE,
+        'sort' => [
+          'TopComments.votes' => 'DESC',
+          'TopComments.id' => 'ASC',
+        ],
+    ]);
+```
+
 ### Changing settings on the fly
 
 The limit and the sort order can be applied/changed on the fly in the containment's query builder:
