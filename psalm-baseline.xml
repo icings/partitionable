@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="4.x-dev@">
   <file src="src/ORM/Association/Loader/PartitionableSelectLoader.php">
-    <InternalClass occurrences="2">
+    <InternalClass occurrences="1">
       <code>SelectLoader</code>
     </InternalClass>
   </file>
@@ -31,6 +31,11 @@
     <InternalMethod occurrences="1">
       <code>parent::_buildResultMap($fetchQuery, $options)</code>
     </InternalMethod>
+  </file>
+  <file src="src/ORM/Association/PartitionableAssociationTrait.php">
+    <ParamNameMismatch occurrences="1">
+      <code>$opts</code>
+    </ParamNameMismatch>
   </file>
   <file src="src/ORM/Association/PartitionableBelongsToMany.php">
     <InternalMethod occurrences="1">
