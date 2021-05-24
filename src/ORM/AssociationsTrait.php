@@ -24,8 +24,9 @@ trait AssociationsTrait
      * The options array accepts the following keys additionally to the ones accepted
      * by `hasMany()`:
      *
-     * - `filterStrategy` (`string`): The filter strategy.
      * - `limit` (`int|null`): The partition limit.
+     * - `singleResult` (`bool`): Whether to enable the single result mode.
+     * - `filterStrategy` (`string`): The filter strategy.
      *
      * @param string $associated The alias for the target table.
      * @param array $options List of options to configure the association definition.
@@ -48,8 +49,9 @@ trait AssociationsTrait
      * The options array accepts the following keys additionally to the ones accepted
      * by `belongsToMany()`:
      *
-     * - `filterStrategy` (`string`): The filter strategy.
      * - `limit` (`int|null`): The partition limit.
+     * - `singleResult` (`bool`): Whether to enable the single result mode.
+     * - `filterStrategy` (`string`): The filter strategy.
      *
      * @param string $associated The alias for the target table.
      * @param array $options List of options to configure the association definition.
