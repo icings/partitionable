@@ -51,7 +51,8 @@ associations, so that it's possible to for example receive a maximum of _n_ numb
 
 Then add the `\Icings\Partitionable\ORM\AssociationsTrait` trait to your table class, use its `partitionableHasMany()`
 and `partitionableBelongsToMany()` methods to add `hasMany`, respectively `belongsToMany` associations, configure a
-limit and a sort order, and you're done with the minimal setup.
+limit and a sort order, and you're done with the minimal setup and you can contain the partitionable associations just
+like any other associations.
 
 Note that configuring a sort order is mandatory, as it is not possible to reliably partition the results without an
 explicit sort order, omitting it will result in an error!
@@ -82,7 +83,33 @@ class ArticlesTable extends \Cake\ORM\Table
 }
 ```
 
-This would select the 3 highest voted comments for each article.
+```php
+$articlesQuery = $this->Articles
+    ->find()
+    ->contain('TopComments');
+```
+
+That would query the 3 highest voted comments for each article, eg the result would look something like:
+
+```php
+[
+    'title' => 'Some Article',
+    'top_comments' => [
+        [
+            'votes' => 10,
+            'body' => 'Some Comment',
+        ],
+        [
+            'votes' => 9,
+            'body' => 'Some Other Comment',
+        ],
+        [
+            'votes' => 8,
+            'body' => 'And Yet Another Comment',
+        ],
+    ],
+]
+```
 
 ### Belongs To Many
 
@@ -114,7 +141,39 @@ class StudentsTable extends \Cake\ORM\Table
 }
 ```
 
-This would select the 3 highest graduated courses for each student.
+```php
+$studentsQuery = $this->Students
+    ->find()
+    ->contain('TopGraduatedCourses');
+```
+
+That would query the 3 highest graduated courses for each student, eg the result would look something like:
+
+```php
+[
+    'name' => 'Some Student',
+    'top_graduated_courses' => [
+        [
+            'name' => 'Some Course',
+            '_joinData' => [
+                'grade' => 1,
+            ],
+        ],
+        [
+            'body' => 'Some Other Course',
+            '_joinData' => [
+                'grade' => 2,
+            ],
+        ],
+        [
+            'body' => 'And Yet Another Course',
+            '_joinData' => [
+                'grade' => 3,
+            ],
+        ],
+    ],
+]
+```
 
 ### Using options to configure the associations
 
