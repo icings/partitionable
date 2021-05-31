@@ -32,7 +32,7 @@ A set of partitionable associations for the CakePHP ORM, allowing for basic limi
 Use [Composer](https://getcomposer.org) to add the library to your project:
 
 ```bash
-composer require icings/partitionable:dev-master
+composer require icings/partitionable
 ```
 
 
