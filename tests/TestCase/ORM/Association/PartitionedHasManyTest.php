@@ -292,6 +292,43 @@ class PartitionedHasManyTest extends TestCase
         $this->assertResultsEqualFile(__FUNCTION__, $query->toArray());
     }
 
+    /**
+     * Tests that tuple comparison transformation does not create a
+     * naming conflict when using standard association aliases that
+     * do match the table name.
+     *
+     * @dataProvider filterStrategyDataProvider
+     * @param string $loaderStrategy The loader strategy.
+     * @param string $filterStrategy The filter strategy.
+     */
+    public function testLimitNoConflictWithStandardAlias(string $loaderStrategy, string $filterStrategy): void
+    {
+        $this->skipInSubqueryCTEStrategyIfSqlServer($filterStrategy);
+
+        $this->_articlesTable
+            ->partitionableHasMany('Comments')
+            ->setForeignKey([
+                'article_id',
+                'article_id2',
+            ])
+            ->setStrategy($loaderStrategy)
+            ->setFilterStrategy($filterStrategy)
+            ->setSort([
+                'Comments.votes' => 'DESC',
+                'Comments.id' => 'ASC',
+                'Comments.id2' => 'ASC',
+            ])
+            ->setLimit(3);
+
+        $query = $this->_articlesTable
+            ->find()
+            ->select(['id', 'id2'])
+            ->contain('Comments')
+            ->disableHydration();
+
+        $this->assertResultsEqualFile(__FUNCTION__, $query->toArray());
+    }
+
     public function testMissingSortOrder(): void
     {
         $this->expectException(RuntimeException::class);
