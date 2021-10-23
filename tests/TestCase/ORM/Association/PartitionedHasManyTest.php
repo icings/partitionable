@@ -401,6 +401,7 @@ class PartitionedHasManyTest extends TestCase
             ->disableHydration();
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_comments'], 'id');
             })
@@ -444,6 +445,7 @@ class PartitionedHasManyTest extends TestCase
             ->disableHydration();
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_comments'], 'id');
             })
@@ -783,6 +785,7 @@ class PartitionedHasManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_comments']);
             })
@@ -865,6 +868,7 @@ class PartitionedHasManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_comments']);
             })

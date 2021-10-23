@@ -450,6 +450,7 @@ class PartitionedBelongsToManyTest extends TestCase
             ->disableHydration();
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_graduated_courses'], 'id');
             })
@@ -495,6 +496,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $queryClone = clone $query;
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_graduated_courses'], 'id');
             })
@@ -833,6 +835,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_graduated_courses']);
             })
@@ -920,6 +923,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_graduated_courses']);
             })
