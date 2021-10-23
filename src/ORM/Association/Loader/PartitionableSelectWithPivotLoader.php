@@ -341,6 +341,7 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
                 array_keys($resultMap),
                 array_column($resultMap, 0)
             );
+            /** @var array<string, mixed> $resultMap */
             $resultMap = array_filter((array)$resultMap);
         }
 
