@@ -146,25 +146,27 @@ class PartitionableSelectLoader extends SelectLoader
     {
         $primaryKeys = [];
         foreach ((array)$rankQuery->getRepository()->getPrimaryKey() as $primaryKey) {
-            $primaryKeys[$primaryKey] = "{$rankQuery->getRepository()->getTable()}.{$primaryKey}";
+            $primaryKeys[$primaryKey] = "__filter__{$rankQuery->getRepository()->getTable()}.{$primaryKey}";
         }
 
         $joinKeys = [];
         foreach ((array)$rankQuery->getRepository()->getPrimaryKey() as $primaryKey) {
             $joinKeys["__ranked__{$this->targetAlias}.{$primaryKey}"] =
-                $fetchQuery->identifier("{$rankQuery->getRepository()->getTable()}.{$primaryKey}");
+                $fetchQuery->identifier("__filter__{$rankQuery->getRepository()->getTable()}.{$primaryKey}");
         }
 
         $filterSubquery = $rankQuery->getRepository()->getConnection()
             ->newQuery()
             ->select($primaryKeys)
 
-            // Need to use either the unaliased table, or an alias different to the target alias, as
-            // for Sqlite the tuple comparison will be rewritten, resulting in the outer conditions
-            // moving into the inner query, where the outer target alias would then match against the
-            // inner alias.
+            // Need to use an alias different to the target alias, as for Sqlite
+            // and Sqlserver the tuple comparison will be rewritten, resulting in
+            // the outer conditions moving into the inner query, where the outer
+            // target alias would then match against the inner alias.
 
-            ->from($rankQuery->getRepository()->getTable())
+            ->from([
+                "__filter__{$rankQuery->getRepository()->getTable()}" => $rankQuery->getRepository()->getTable(),
+            ])
             ->innerJoin(
                 ["__ranked__{$this->targetAlias}" => $rankQuery],
                 $joinKeys + ["__ranked__{$this->targetAlias}.__row_number <=" => $limit],
