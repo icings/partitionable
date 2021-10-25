@@ -12,10 +12,11 @@ namespace Icings\Partitionable\ORM\Association\Loader;
 use Cake\Database\Expression\OrderByExpression;
 use Cake\Database\ExpressionInterface;
 use Cake\Event\EventInterface;
+use Cake\Event\EventManager;
 use Cake\ORM\Query;
+use Closure;
 use Icings\Partitionable\ORM\Association\PartitionableAssociationInterface;
 use RuntimeException;
-use function spl_object_hash;
 use const PHP_INT_MAX;
 
 /**
@@ -24,11 +25,26 @@ use const PHP_INT_MAX;
 trait PartitionableSelectLoaderTrait
 {
     /**
-     * Map of repository aliases and clean up listener callables.
+     * Listener that handles invoking individual, query specific
+     * cleanup listeners.
      *
-     * @var array<string, array<string, Callable>>
+     * @var Closure|null
+     */
+    protected static $_cleanUpListener = null;
+
+    /**
+     * Map of tracking IDs and clean up listener callables.
+     *
+     * @var array<int, Closure>
      */
     protected static $_cleanUpListenerMap = [];
+
+    /**
+     * The next tracking ID.
+     *
+     * @var int
+     */
+    protected static $_nextTrackingId = 1;
 
     /**
      * The partition limit.
@@ -53,6 +69,16 @@ trait PartitionableSelectLoaderTrait
 
         $this->limit = $options['limit'];
         $this->filterStrategy = $options['filterStrategy'];
+    }
+
+    /**
+     * Returns a unique tracking ID on every call.
+     *
+     * @return int
+     */
+    protected function _getNextTrackingId(): int
+    {
+        return static::$_nextTrackingId++;
     }
 
     /**
@@ -89,7 +115,10 @@ trait PartitionableSelectLoaderTrait
      */
     protected function _buildQuery(array $options): Query
     {
-        $fetchQuery = parent::_buildQuery($options);
+        $fetchQuery =
+            parent::_buildQuery($options)
+            ->applyOptions(['partitionableQueryType' => 'fetcher']);
+
         $dummy = $this->_getDummyQuery($fetchQuery);
 
         // Bail out early with default behavior in case no limit has been set.
@@ -108,7 +137,10 @@ trait PartitionableSelectLoaderTrait
             ->limit(null)
             ->offset(null);
 
-        $rankQuery = $this->_buildRankQuery(clone $fetchQuery);
+        $rankQuery = $this
+            ->_buildRankQuery(clone $fetchQuery)
+            ->applyOptions(['partitionableQueryType' => 'ranking']);
+
         switch ($this->filterStrategy) {
             case PartitionableAssociationInterface::FILTER_IN_SUBQUERY_CTE:
                 $fetchQuery = $this->_inSubqueryCTE($fetchQuery, $rankQuery, $limit);
@@ -154,74 +186,96 @@ trait PartitionableSelectLoaderTrait
             'order' => false,
         ];
 
-        $hashOptionName = static::class . '_object_hash';
-        $queryHash = spl_object_hash($query);
-        $query->applyOptions([$hashOptionName => spl_object_hash($query)]);
+        $trackingOptionName = static::class . '_trackingId';
+        $processedStateOptionName = static::class . '_processed';
 
-        $repository = $query->getRepository();
-        $repositoryHash = spl_object_hash($repository);
+        if (static::$_cleanUpListener === null) {
+            static::$_cleanUpListener = function (
+                EventInterface $event,
+                Query $query
+            ) use (
+                $trackingOptionName,
+                $processedStateOptionName
+            ): Query {
+                // Scope the listener to specific queries in order to avoid states
+                // being messed with when the listener is triggered for other queries
+                // of the same repository. Furthermore, this ensures that the listener
+                // proceeds for cloned queries, which share one and the same listener,
+                // but are different objects.
 
-        if (!isset(static::$_cleanUpListenerMap[$repositoryHash])) {
-            static::$_cleanUpListenerMap[$repositoryHash] = [];
+                $queryOptions = $query->getOptions();
+                if (
+                    !array_key_exists($trackingOptionName, $queryOptions) ||
+                    $queryOptions[$processedStateOptionName] === true
+                ) {
+                    return $query;
+                }
 
-            $repository
-                ->getEventManager()
-                ->on('Model.beforeFind', ['priority' => PHP_INT_MAX], function (
-                    EventInterface $event,
-                    Query $query
-                ) use (
-                    $hashOptionName
-                ): Query {
-                    // Scope the listener to a specific query in order to avoid states
-                    // being messed with when the listener is triggered for other queries
-                    // of the same repository. Furthermore this ensures that the listener
-                    // proceeds for cloned queries, which share one and the same listener,
-                    // but are different objects.
+                $trackingId = $queryOptions[$trackingOptionName];
+                if (!isset(static::$_cleanUpListenerMap[$trackingId])) {
+                    throw new RuntimeException(
+                        'The tracking ID value found on the query object has not been mapped, ' .
+                        'make sure that you did not empty out or override the query options.'
+                    );
+                }
 
-                    $queryOptions = $query->getOptions();
-                    if (!array_key_exists($hashOptionName, $queryOptions)) {
-                        return $query;
-                    }
-
-                    $repositoryHash = spl_object_hash($query->getRepository());
-                    $queryHash = $queryOptions[$hashOptionName];
-                    if (!isset(static::$_cleanUpListenerMap[$repositoryHash][$queryHash])) {
-                        throw new RuntimeException(
-                            'The hash value found on the query object has not been mapped, ' .
-                            'make sure that you did not empty out or override the query options.'
-                        );
-                    }
-
-                    return (static::$_cleanUpListenerMap[$repositoryHash][$queryHash])($event, $query);
-                });
+                return (static::$_cleanUpListenerMap[$trackingId])($event, $query);
+            };
         }
 
-        if (!isset(static::$_cleanUpListenerMap[$repositoryHash][$queryHash])) {
+        $repository = $query->getRepository();
+
+        $eventManager = $repository->getEventManager();
+        assert($eventManager instanceof EventManager);
+        $listeners = $eventManager->prioritisedListeners('Model.beforeFind');
+
+        $isListenerRegistered = false;
+        foreach ($listeners[PHP_INT_MAX] ?? [] as $listener) {
+            if ($listener['callable'] === static::$_cleanUpListener) {
+                $isListenerRegistered = true;
+                break;
+            }
+        }
+
+        if (!$isListenerRegistered) {
+            $repository
+                ->getEventManager()
+                ->on('Model.beforeFind', ['priority' => PHP_INT_MAX], static::$_cleanUpListener);
+        }
+
+        $trackingId = $this->_getNextTrackingId();
+
+        $query->applyOptions([
+            $trackingOptionName => $trackingId,
+            $processedStateOptionName => false,
+        ]);
+
+        if (!isset(static::$_cleanUpListenerMap[$trackingId])) {
             $listener = function (
                 EventInterface $event,
                 Query $query
             ) use (
-                $removals
+                $removals,
+                $processedStateOptionName
             ): Query {
                 if ($removals['limit']) {
-                    $query
-                        ->limit(null);
+                    $query->limit(null);
                 }
 
                 if ($removals['offset']) {
-                    $query
-                        ->offset(null);
+                    $query->offset(null);
                 }
 
                 if ($removals['order']) {
-                    $query
-                        ->order([], true);
+                    $query->order([], true);
                 }
+
+                $query->applyOptions([$processedStateOptionName => true]);
 
                 return $query;
             };
 
-            static::$_cleanUpListenerMap[$repositoryHash][$queryHash] = $listener;
+            static::$_cleanUpListenerMap[$trackingId] = $listener;
         }
 
         return $query;
