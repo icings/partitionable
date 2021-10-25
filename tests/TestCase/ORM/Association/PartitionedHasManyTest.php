@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Icings\Partitionable\Test\TestCase\ORM\Association;
 
+use ArrayObject;
 use Cake\Database\Driver\Mysql;
 use Cake\Database\Driver\Sqlserver;
 use Cake\Database\Expression\CommonTableExpression;
@@ -401,6 +402,7 @@ class PartitionedHasManyTest extends TestCase
             ->disableHydration();
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_comments'], 'id');
             })
@@ -444,6 +446,7 @@ class PartitionedHasManyTest extends TestCase
             ->disableHydration();
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_comments'], 'id');
             })
@@ -452,12 +455,16 @@ class PartitionedHasManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query) {
-                return $query
-                    ->limit(2)
-                    ->order([
-                        'TopComments.votes' => 'ASC',
-                    ]);
+            ->on('Model.beforeFind', function ($event, Query $query, ArrayObject $options) {
+                if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
+                    $query
+                        ->limit(2)
+                        ->order([
+                            'TopComments.votes' => 'ASC',
+                        ]);
+                }
+
+                return $query;
             });
 
         $query = $this->_articlesTable
@@ -476,7 +483,7 @@ class PartitionedHasManyTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage(
-            'The hash value found on the query object has not been mapped, ' .
+            'The tracking ID value found on the query object has not been mapped, ' .
             'make sure that you did not empty out or override the query options.'
         );
 
@@ -492,7 +499,7 @@ class PartitionedHasManyTest extends TestCase
             ->getEventManager()
             ->on('Model.beforeFind', function ($event, Query $query) {
                 return $query->applyOptions([
-                    PartitionableSelectLoader::class . '_object_hash' => null,
+                    PartitionableSelectLoader::class . '_trackingId' => null,
                 ]);
             });
 
@@ -783,6 +790,7 @@ class PartitionedHasManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_comments']);
             })
@@ -865,6 +873,7 @@ class PartitionedHasManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_comments']);
             })

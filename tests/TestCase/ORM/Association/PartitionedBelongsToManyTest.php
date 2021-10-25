@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Icings\Partitionable\Test\TestCase\ORM\Association;
 
+use Arrayobject;
 use Cake\Database\Driver\Mysql;
 use Cake\Database\Driver\Sqlserver;
 use Cake\Database\Expression\CommonTableExpression;
@@ -450,6 +451,7 @@ class PartitionedBelongsToManyTest extends TestCase
             ->disableHydration();
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_graduated_courses'], 'id');
             })
@@ -495,6 +497,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $queryClone = clone $query;
 
         $ids = $query
+            ->all()
             ->extract(function ($row) {
                 return array_column($row['top_graduated_courses'], 'id');
             })
@@ -503,12 +506,16 @@ class PartitionedBelongsToManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query) {
-                return $query
-                    ->limit(2)
-                    ->order([
-                        'CourseMemberships.grade' => 'DESC',
-                    ]);
+            ->on('Model.beforeFind', function ($event, Query $query, Arrayobject $options) {
+                if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
+                    $query
+                        ->limit(2)
+                        ->order([
+                            'CourseMemberships.grade' => 'DESC',
+                        ]);
+                }
+
+                return $query;
             });
 
         $this->assertResultsEqualFile(__FUNCTION__, $queryClone->toArray());
@@ -518,7 +525,7 @@ class PartitionedBelongsToManyTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage(
-            'The hash value found on the query object has not been mapped, ' .
+            'The tracking ID value found on the query object has not been mapped, ' .
             'make sure that you did not empty out or override the query options.'
         );
 
@@ -534,7 +541,7 @@ class PartitionedBelongsToManyTest extends TestCase
             ->getEventManager()
             ->on('Model.beforeFind', function ($event, Query $query) {
                 return $query->applyOptions([
-                    PartitionableSelectWithPivotLoader::class . '_object_hash' => null,
+                    PartitionableSelectWithPivotLoader::class . '_trackingId' => null,
                 ]);
             });
 
@@ -833,6 +840,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_graduated_courses']);
             })
@@ -920,6 +928,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $queryClone = clone $query;
 
         $counts = $query
+            ->all()
             ->extract(function ($row) {
                 return count($row['top_graduated_courses']);
             })

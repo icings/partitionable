@@ -46,6 +46,11 @@ $config = [
             'locales' => [APP . 'Locale' . DS],
         ],
     ],
+    'Error' => [
+        'ignoredDeprecationPaths' => [
+            'vendor/cakephp/cakephp/src/TestSuite/Fixture/FixtureInjector.php',
+        ],
+    ],
 ];
 Configure::write($config);
 

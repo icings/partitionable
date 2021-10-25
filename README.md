@@ -216,18 +216,23 @@ $articlesQuery = $this->Articles
     });
 ```
 
-and via `Model.beforeFind`:
+and via `Model.beforeFind`, where the partitionable fetcher query that needs to be modified, can be identified via the
+option `partitionableQueryType`, which would hold the value `fetcher`:
 
 ```php
 $this->Articles->TopComments
     ->getEventManager()
-    ->on('Model.beforeFind', function ($event, \Cake\ORM\Query $query) {
-        return $query
-            ->limit(10)
-            ->order([
-                'TopComments.votes' => 'DESC',
-                'TopComments.id' => 'ASC',
-            ]);
+    ->on('Model.beforeFind', function ($event, \Cake\ORM\Query $query, \ArrayObject $options) {
+        if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
+            $query
+              ->limit(10)
+              ->order([
+                  'TopComments.votes' => 'DESC',
+                  'TopComments.id' => 'ASC',
+              ]);
+        }
+        
+        return $query;
     });
 ```
 
