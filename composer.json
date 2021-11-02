@@ -44,7 +44,7 @@
         "cs-fix": "phpcbf --parallel=16 -p ./src ./tests",
         "test": "phpunit",
         "test-coverage": "phpunit --coverage-clover=coverage.xml",
-        "stan-setup": "cp composer.json composer.backup && composer require --dev \"phpstan/phpstan:^0.12.0\" \"psalm/phar:^4.0\" && mv composer.backup composer.json",
+        "stan-setup": "cp composer.json composer.backup && composer require --dev \"phpstan/phpstan:^1.0\" \"psalm/phar:^4.0\" && mv composer.backup composer.json",
         "stan": [
             "@phpstan-src",
             "@phpstan-tests",
@@ -54,8 +54,8 @@
             "@phpstan-src",
             "@phpstan-tests"
         ],
-        "phpstan-src": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 7 -c ./phpstan.src.neon ./src",
-        "phpstan-tests": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 7 -c ./phpstan.tests.neon ./tests",
+        "phpstan-src": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 8 -c ./phpstan.src.neon ./src",
+        "phpstan-tests": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 8 -c ./phpstan.tests.neon ./tests",
         "psalm": "php ./vendor/psalm/phar/psalm.phar"
     }
 }
