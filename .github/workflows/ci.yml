@@ -55,15 +55,17 @@ jobs:
 
       - name: Setup MariaDB latest
         if: matrix.db-type == 'mariadb' && matrix.php-version != '7.2'
-        run: >
-          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb
+        run: |
+          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb \
           --disable-log-bin --wait_timeout=240 --connect_timeout=240 --max_allowed_packet=128M
+          sleep 10
 
       - name: Setup MariaDB lowest (10.2)
         if: matrix.db-type == 'mariadb' && matrix.php-version == '7.2'
-        run: >
-          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb:10.2
+        run: |
+          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb:10.2 \
           --disable-log-bin --wait_timeout=240 --connect_timeout=240 --max_allowed_packet=128M
+          sleep 10
 
       - name: Setup PostgreSQL latest
         if: matrix.db-type == 'pgsql' && matrix.php-version != '7.2'
