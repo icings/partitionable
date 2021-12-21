@@ -61,4 +61,9 @@ ini_set('intl.default_locale', Configure::read('App.defaultLocale'));
 if (!getenv('DATABASE_URL')) {
     putenv('DATABASE_URL=sqlite:///:memory:');
 }
-ConnectionManager::setConfig('test', ['url' => getenv('DATABASE_URL')]);
+ConnectionManager::setConfig('test', [
+    'url' => getenv('DATABASE_URL'),
+    'flags' => [
+        PDO::ATTR_STRINGIFY_FETCHES => true,
+    ],
+]);
