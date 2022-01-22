@@ -365,7 +365,7 @@ The currently available strategies are:
   possible to emulate the required row numbering, these constructs are rather fragile and there's way too many
   situations in which they will break, respectively silently produce wrong results.
 
-* MariaDB, when running in `ONLY_FULL_GROUP_MY` mode, erroneously requires a `GROUP BY` clause to be present when using
+* MariaDB, when running in `ONLY_FULL_GROUP_BY` mode, erroneously requires a `GROUP BY` clause to be present when using
   window functions like the one used for row numbering (https://jira.mariadb.org/browse/MDEV-17785). There isn't much
   that can be done about it until the bug is fixed, other than disabling `ONLY_FULL_GROUP_BY`, or adding grouping to
   the association's query accordingly.
