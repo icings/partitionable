@@ -34,8 +34,6 @@ jobs:
             cakephp-version: '4.2.0'
           - php-version: '8.1'
             cakephp-version: '4.2.0'
-          - php-version: '8.1'
-            db-type: 'sqlsrv'
 
     name: |
       ${{
