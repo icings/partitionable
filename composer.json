@@ -57,5 +57,10 @@
         "phpstan-src": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 8 -c ./phpstan.src.neon ./src",
         "phpstan-tests": "php ./vendor/phpstan/phpstan/phpstan.phar analyse -l 8 -c ./phpstan.tests.neon ./tests",
         "psalm": "php ./vendor/psalm/phar/psalm.phar"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }
