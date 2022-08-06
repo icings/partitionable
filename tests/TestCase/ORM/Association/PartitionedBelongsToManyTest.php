@@ -424,7 +424,7 @@ class PartitionedBelongsToManyTest extends TestCase
         /** @var PartitionableBelongsToMany $association */
         $association = $this->_studentsTable->getAssociation('TopGraduatedCourses');
         $association
-            ->setSort(null);
+            ->setSort([]);
 
         $this->_studentsTable
             ->find()
