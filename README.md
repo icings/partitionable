@@ -365,10 +365,10 @@ The currently available strategies are:
   possible to emulate the required row numbering, these constructs are rather fragile and there's way too many
   situations in which they will break, respectively silently produce wrong results.
 
-* MariaDB, when running in `ONLY_FULL_GROUP_BY` mode, erroneously requires a `GROUP BY` clause to be present when using
-  window functions like the one used for row numbering (https://jira.mariadb.org/browse/MDEV-17785). There isn't much
-  that can be done about it until the bug is fixed, other than disabling `ONLY_FULL_GROUP_BY`, or adding grouping to
-  the association's query accordingly.
+* Older MariaDB versions, when running in `ONLY_FULL_GROUP_BY` mode, erroneously require a `GROUP BY` clause to be
+  present when using window functions like the one used for row numbering (https://jira.mariadb.org/browse/MDEV-17785).
+  If you cannot use a version where that bug was fixed, you either have to disable `ONLY_FULL_GROUP_BY`, or add grouping
+  to the association's query accordingly.
 
 * SQL Server does not support common table expressions in subqueries, hence the `FILTER_IN_SUBQUERY_CTE` strategy cannot
   be used with it. In fact, it's also not possible to use custom common table expressions in the association's query

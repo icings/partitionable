@@ -330,6 +330,39 @@ class PartitionedHasManyTest extends TestCase
         $this->assertResultsEqualFile(__FUNCTION__, $query->toArray());
     }
 
+    /**
+     * @dataProvider filterStrategyDataProvider
+     * @param string $loaderStrategy The loader strategy.
+     * @param string $filterStrategy The filter strategy.
+     */
+    public function testLimitMySqlMariaDbOnlyFullGroupBy(string $loaderStrategy, string $filterStrategy): void
+    {
+        $this->skipIf(
+            !($this->_articlesTable->getConnection()->getDriver() instanceof Mysql),
+            'ONLY_FULL_GROUP_BY tests are for MySQL/MariaDB only.'
+        );
+
+        $this->_articlesTable->getConnection()
+            ->query(
+                'SET SESSION sql_mode=CONCAT(@@SESSION.sql_mode, ",ONLY_FULL_GROUP_BY")'
+            )
+            ->execute();
+
+        /** @var PartitionableHasMany $association */
+        $association = $this->_articlesTable->getAssociation('TopComments');
+        $association
+            ->setStrategy($loaderStrategy)
+            ->setFilterStrategy($filterStrategy);
+
+        $query = $this->_articlesTable
+            ->find()
+            ->select(['id', 'id2'])
+            ->contain('TopComments')
+            ->disableHydration();
+
+        $this->assertResultsEqualFile(__FUNCTION__, $query->toArray());
+    }
+
     public function testMissingSortOrder(): void
     {
         $this->expectException(RuntimeException::class);
