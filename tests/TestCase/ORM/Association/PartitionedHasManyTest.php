@@ -371,7 +371,7 @@ class PartitionedHasManyTest extends TestCase
         /** @var PartitionableHasMany $association */
         $association = $this->_articlesTable->getAssociation('TopComments');
         $association
-            ->setSort(null);
+            ->setSort([]);
 
         $this->_articlesTable
             ->find()
