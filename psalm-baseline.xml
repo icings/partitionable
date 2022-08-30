@@ -18,6 +18,9 @@
       <code>parent::_buildQuery($options)</code>
       <code>parent::_defaultOptions()</code>
     </InternalMethod>
+    <LessSpecificImplementedReturnType occurrences="1">
+      <code>array</code>
+    </LessSpecificImplementedReturnType>
     <MissingParamType occurrences="2">
       <code>$filter</code>
       <code>$key</code>
