@@ -7,7 +7,7 @@
 [![Software License][ico-license]][link-license]
 
 [ico-stability]: https://img.shields.io/badge/stability-experimental-orange.svg?style=flat-square
-[ico-build]: https://img.shields.io/github/workflow/status/icings/partitionable/CI/master?style=flat-square
+[ico-build]: https://img.shields.io/github/actions/workflow/status/icings/partitionable/ci.yml?branch=master&style=flat-square
 [ico-coverage]: https://img.shields.io/codecov/c/github/icings/partitionable.svg?style=flat-square
 [ico-version]: https://img.shields.io/packagist/v/icings/partitionable.svg?style=flat-square&label=latest
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
