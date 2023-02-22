@@ -12,7 +12,7 @@ on:
 
 jobs:
   tests:
-    runs-on: ${{ fromJSON('["ubuntu-18.04", "ubuntu-20.04"]')[matrix.db-type == 'sqlite'] }}
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -47,7 +47,7 @@ jobs:
       }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup MySQL latest
         if: matrix.db-type == 'mysql'
@@ -104,17 +104,17 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Get date part for cache key
         id: key-date
-        run: echo "::set-output name=date::$(date +'%Y-%m')"
+        run: echo "date=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
 
       - name: Cache composer dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
+          key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}
 
       - name: Composer install
         run: |
@@ -143,14 +143,14 @@ jobs:
 
       - name: Code Coverage Report
         if: success() && matrix.php-version == '7.4' && matrix.cakephp-version == 'latest'
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
 
   cs-stan:
     name: Coding Standards & Static Analysis
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
