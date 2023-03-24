@@ -1,6 +1,6 @@
 {
     "name": "icings/partitionable",
-    "type": "library",
+    "type": "cakephp-plugin",
     "description": "Partitionable associations for the CakePHP ORM, allowing for basic limiting per group.",
     "keywords": [
         "cakephp", "database", "orm", "associations", "limit", "greatest-n-per-group"
