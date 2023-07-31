@@ -1,6 +1,6 @@
-/.phpunit.result.cache
 /composer.lock
 /phpunit.xml
 /phpcs.xml
 /psalm.xml
+/.phpunit.cache
 /vendor

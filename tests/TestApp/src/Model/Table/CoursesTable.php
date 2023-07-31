@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace Icings\Partitionable\Test\TestApp\Model\Table;
 
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 
 class CoursesTable extends Table
@@ -32,7 +32,7 @@ class CoursesTable extends Table
             ->setSort(['Students.id' => 'ASC']);
     }
 
-    public function findOnline(Query $query, array $options): Query
+    public function findOnline(SelectQuery $query, array $options): SelectQuery
     {
         return $query->where([
             $this->aliasField('online') => true,

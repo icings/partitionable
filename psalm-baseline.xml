@@ -1,52 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.x-dev@">
+<files psalm-version="5.13.1@086b94371304750d1c673315321a55d15fc59015">
   <file src="src/ORM/Association/Loader/PartitionableSelectLoader.php">
-    <InternalClass occurrences="1">
+    <InternalClass>
       <code>SelectLoader</code>
     </InternalClass>
   </file>
   <file src="src/ORM/Association/Loader/PartitionableSelectLoaderTrait.php">
-    <InternalClass occurrences="4">
+    <InternalClass>
+      <code>parent::__construct($options)</code>
+      <code>parent::__construct($options)</code>
+      <code>parent::_addFilteringCondition($query, $key, $filter)</code>
+      <code>parent::_addFilteringCondition($query, $key, $filter)</code>
+      <code>parent::_buildQuery($options)</code>
+      <code>parent::_buildQuery($options)</code>
+      <code>parent::_defaultOptions()</code>
+      <code>parent::_defaultOptions()</code>
+    </InternalClass>
+    <InternalMethod>
+      <code>parent::__construct($options)</code>
       <code>parent::__construct($options)</code>
       <code>parent::_addFilteringCondition($query, $key, $filter)</code>
       <code>parent::_buildQuery($options)</code>
-      <code>parent::_defaultOptions()</code>
-    </InternalClass>
-    <InternalMethod occurrences="4">
-      <code>parent::__construct($options)</code>
-      <code>parent::_addFilteringCondition($query, $key, $filter)</code>
       <code>parent::_buildQuery($options)</code>
       <code>parent::_defaultOptions()</code>
     </InternalMethod>
-    <LessSpecificImplementedReturnType occurrences="1">
+    <LessSpecificImplementedReturnType>
       <code>array</code>
     </LessSpecificImplementedReturnType>
-    <MissingParamType occurrences="2">
-      <code>$filter</code>
-      <code>$key</code>
-    </MissingParamType>
   </file>
   <file src="src/ORM/Association/Loader/PartitionableSelectWithPivotLoader.php">
-    <InternalClass occurrences="2">
+    <InternalClass>
       <code>SelectWithPivotLoader</code>
       <code>parent::_buildResultMap($fetchQuery, $options)</code>
     </InternalClass>
-    <InternalMethod occurrences="1">
+    <InternalMethod>
       <code>parent::_buildResultMap($fetchQuery, $options)</code>
     </InternalMethod>
   </file>
-  <file src="src/ORM/Association/PartitionableAssociationTrait.php">
-    <ParamNameMismatch occurrences="1">
-      <code>$opts</code>
-    </ParamNameMismatch>
-  </file>
   <file src="src/ORM/Association/PartitionableBelongsToMany.php">
-    <InternalMethod occurrences="1">
+    <InternalMethod>
       <code>buildEagerLoader</code>
     </InternalMethod>
   </file>
   <file src="src/ORM/Association/PartitionableHasMany.php">
-    <InternalMethod occurrences="1">
+    <InternalMethod>
       <code>buildEagerLoader</code>
     </InternalMethod>
   </file>

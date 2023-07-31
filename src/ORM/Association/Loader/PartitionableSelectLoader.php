@@ -11,7 +11,7 @@ namespace Icings\Partitionable\ORM\Association\Loader;
 
 use Cake\Database\Expression\CommonTableExpression;
 use Cake\ORM\Association\Loader\SelectLoader;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use RuntimeException;
 
 /**
@@ -24,10 +24,10 @@ class PartitionableSelectLoader extends SelectLoader
     /**
      * Builds the rank query.
      *
-     * @param Query $query The query to turn into the rank query.
-     * @return Query
+     * @param SelectQuery $query The query to turn into the rank query.
+     * @return SelectQuery
      */
-    protected function _buildRankQuery(Query $query): Query
+    protected function _buildRankQuery(SelectQuery $query): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$query->getRepository()->getPrimaryKey() as $primaryKey) {
@@ -61,7 +61,7 @@ class PartitionableSelectLoader extends SelectLoader
                     ->rowNumber()
                     ->over()
                     ->partition($foreignKeys)
-                    ->order($order),
+                    ->orderBy($order),
             ]);
 
         return $query;
@@ -84,12 +84,12 @@ class PartitionableSelectLoader extends SelectLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _inSubqueryCTE(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _inSubqueryCTE(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$rankQuery->getRepository()->getPrimaryKey() as $primaryKey) {
@@ -97,7 +97,7 @@ class PartitionableSelectLoader extends SelectLoader
         }
 
         $filterSubquery = $rankQuery->getRepository()->getConnection()
-            ->newQuery()
+            ->selectQuery()
             ->with(function (CommonTableExpression $cte) use ($rankQuery) {
                 return $cte
                     ->name("__ranked__{$this->targetAlias}")
@@ -137,12 +137,12 @@ class PartitionableSelectLoader extends SelectLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _inSubqueryJoin(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _inSubqueryJoin(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$rankQuery->getRepository()->getPrimaryKey() as $primaryKey) {
@@ -156,7 +156,7 @@ class PartitionableSelectLoader extends SelectLoader
         }
 
         $filterSubquery = $rankQuery->getRepository()->getConnection()
-            ->newQuery()
+            ->selectQuery()
             ->select($primaryKeys)
 
             // Need to use an alias different to the target alias, as for Sqlite
@@ -200,12 +200,12 @@ class PartitionableSelectLoader extends SelectLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _inSubqueryTable(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _inSubqueryTable(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$rankQuery->getRepository()->getPrimaryKey() as $primaryKey) {
@@ -213,7 +213,7 @@ class PartitionableSelectLoader extends SelectLoader
         }
 
         $filterSubquery = $rankQuery->getRepository()->getConnection()
-            ->newQuery()
+            ->selectQuery()
             ->select($primaryKeys)
             ->from(["__ranked__{$this->targetAlias}" => $rankQuery])
             ->where(
@@ -247,12 +247,12 @@ class PartitionableSelectLoader extends SelectLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _innerJoinCTE(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _innerJoinCTE(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $fetchQuery
             ->with(function (CommonTableExpression $cte) use ($rankQuery) {
@@ -290,12 +290,12 @@ class PartitionableSelectLoader extends SelectLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _innerJoinSubquery(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _innerJoinSubquery(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$rankQuery->getRepository()->getPrimaryKey() as $primaryKey) {

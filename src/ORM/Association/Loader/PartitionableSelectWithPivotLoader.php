@@ -12,7 +12,7 @@ namespace Icings\Partitionable\ORM\Association\Loader;
 use Cake\Database\Expression\CommonTableExpression;
 use Cake\ORM\Association;
 use Cake\ORM\Association\Loader\SelectWithPivotLoader;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use RuntimeException;
 
 /**
@@ -25,10 +25,10 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
     /**
      * Builds the rank query.
      *
-     * @param Query $query The query to turn into the rank query.
-     * @return Query
+     * @param SelectQuery $query The query to turn into the rank query.
+     * @return SelectQuery
      */
-    protected function _buildRankQuery(Query $query): Query
+    protected function _buildRankQuery(SelectQuery $query): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$this->junctionAssoc->getPrimaryKey() as $primaryKey) {
@@ -53,7 +53,7 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
                     ->rowNumber()
                     ->over()
                     ->partition($foreignKeys)
-                    ->order($order),
+                    ->orderBy($order),
             ]);
     }
 
@@ -76,12 +76,12 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _inSubqueryCTE(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _inSubqueryCTE(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$this->junctionAssoc->getPrimaryKey() as $primaryKey) {
@@ -89,7 +89,7 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
         }
 
         $filterSubquery = $rankQuery->getRepository()->getConnection()
-            ->newQuery()
+            ->selectQuery()
             ->with(function (CommonTableExpression $cte) use ($rankQuery) {
                 return $cte
                     ->name("__ranked__{$this->targetAlias}")
@@ -131,12 +131,12 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _inSubqueryJoin(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _inSubqueryJoin(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$this->junctionAssoc->getPrimaryKey() as $primaryKey) {
@@ -150,7 +150,7 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
         }
 
         $filterSubquery = $rankQuery->getRepository()->getConnection()
-            ->newQuery()
+            ->selectQuery()
             ->select($primaryKeys)
 
             // Need to use an alias different to the target alias, as for Sqlite
@@ -196,12 +196,12 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _inSubqueryTable(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _inSubqueryTable(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$this->junctionAssoc->getPrimaryKey() as $primaryKey) {
@@ -209,7 +209,7 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
         }
 
         $filterSubquery = $rankQuery->getRepository()->getConnection()
-            ->newQuery()
+            ->selectQuery()
             ->select($primaryKeys)
             ->from(["__ranked__{$this->targetAlias}" => $rankQuery])
             ->where(
@@ -243,12 +243,12 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _innerJoinCTE(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _innerJoinCTE(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $fetchQuery
             ->with(function (CommonTableExpression $cte) use ($rankQuery) {
@@ -288,12 +288,12 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
      * ORDER BY sort
      * ```
      *
-     * @param Query $fetchQuery The fetch query.
-     * @param Query $rankQuery The rank query.
+     * @param SelectQuery $fetchQuery The fetch query.
+     * @param SelectQuery $rankQuery The rank query.
      * @param int $limit The partition limit.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _innerJoinSubquery(Query $fetchQuery, Query $rankQuery, int $limit): Query
+    protected function _innerJoinSubquery(SelectQuery $fetchQuery, SelectQuery $rankQuery, int $limit): SelectQuery
     {
         $primaryKeys = [];
         foreach ((array)$this->junctionAssoc->getPrimaryKey() as $primaryKey) {
@@ -314,7 +314,7 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
     /**
      * @inheritDoc
      */
-    protected function _buildResultMap(Query $fetchQuery, array $options): array
+    protected function _buildResultMap(SelectQuery $fetchQuery, array $options): array
     {
         $resultMap = parent::_buildResultMap($fetchQuery, $options);
 
@@ -344,7 +344,7 @@ class PartitionableSelectWithPivotLoader extends SelectWithPivotLoader
                 array_column($resultMap, 0)
             );
             /** @var array<string, mixed> $resultMap */
-            $resultMap = array_filter((array)$resultMap);
+            $resultMap = array_filter($resultMap);
         }
 
         return $resultMap;

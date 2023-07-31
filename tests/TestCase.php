@@ -14,9 +14,10 @@ use Cake\Database\Driver\Sqlserver;
 use Cake\Datasource\ConnectionManager;
 use Cake\I18n\I18n;
 use Cake\ORM\Association;
+use Cake\TestSuite\TestCase as CakeTestCase;
 use Icings\Partitionable\ORM\Association\PartitionableAssociationInterface;
 
-class TestCase extends \Cake\TestSuite\TestCase
+class TestCase extends CakeTestCase
 {
     public function setUp(): void
     {
@@ -54,7 +55,7 @@ class TestCase extends \Cake\TestSuite\TestCase
         );
     }
 
-    public function filterStrategyDataProvider(): array
+    public static function filterStrategyDataProvider(): array
     {
         $filterStrategies = [
             PartitionableAssociationInterface::FILTER_IN_SUBQUERY_CTE,

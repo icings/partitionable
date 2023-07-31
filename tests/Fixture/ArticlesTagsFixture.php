@@ -13,26 +13,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class ArticlesTagsFixture extends TestFixture
 {
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'article_id' => ['type' => 'integer'],
-        'article_id2' => ['type' => 'integer'],
-        'tag_id' => ['type' => 'integer'],
-        'tag_id2' => ['type' => 'integer'],
-        'weight' => ['type' => 'integer'],
-        'created' => ['type' => 'datetime', 'null' => true, 'default' => null],
-        'modified' => ['type' => 'datetime', 'null' => true, 'default' => null],
-        '_indexes' => [
-            'articles_tags_article_id' => ['type' => 'index', 'columns' => ['article_id']],
-            'articles_tags_article_id2' => ['type' => 'index', 'columns' => ['article_id2']],
-            'articles_tags_tag_id' => ['type' => 'index', 'columns' => ['article_id']],
-            'articles_tags_tag_id2' => ['type' => 'index', 'columns' => ['article_id2']],
-        ],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id']],
-        ],
-    ];
-
     public function init(): void
     {
         $this->records = [

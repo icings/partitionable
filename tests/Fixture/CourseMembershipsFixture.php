@@ -13,18 +13,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class CourseMembershipsFixture extends TestFixture
 {
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'student_id' => ['type' => 'integer'],
-        'student_id2' => ['type' => 'integer'],
-        'course_id' => ['type' => 'integer'],
-        'course_id2' => ['type' => 'integer'],
-        'grade' => ['type' => 'integer', 'null' => true, 'default' => null],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['student_id', 'student_id2', 'course_id', 'course_id2']],
-        ],
-    ];
-
     public function init(): void
     {
         $this->records = [
