@@ -13,24 +13,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class CommentsFixture extends TestFixture
 {
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'id2' => ['type' => 'integer'],
-        'article_id' => ['type' => 'integer'],
-        'article_id2' => ['type' => 'integer'],
-        'author_id' => ['type' => 'integer'],
-        'votes' => ['type' => 'integer'],
-        'body' => ['type' => 'text'],
-        'published' => ['type' => 'boolean'],
-        '_indexes' => [
-            'comments_article_id' => ['type' => 'index', 'columns' => ['article_id', 'article_id2']],
-            'comments_top_comments_sort' => ['type' => 'index', 'columns' => ['votes', 'id']],
-        ],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id', 'id2']],
-        ],
-    ];
-
     public function init(): void
     {
         $this->records = [

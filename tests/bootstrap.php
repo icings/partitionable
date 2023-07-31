@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
+use Cake\TestSuite\Fixture\SchemaLoader;
+use function Cake\Core\env;
 
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
@@ -67,3 +69,12 @@ ConnectionManager::setConfig('test', [
         PDO::ATTR_STRINGIFY_FETCHES => true,
     ],
 ]);
+
+if (env('CAKE_TEST_AUTOQUOTE')) {
+    ConnectionManager::get('test')->getDriver()->enableAutoQuoting(true);
+}
+
+if (env('FIXTURE_SCHEMA_METADATA')) {
+    $loader = new SchemaLoader();
+    $loader->loadInternalFile(env('FIXTURE_SCHEMA_METADATA'));
+}

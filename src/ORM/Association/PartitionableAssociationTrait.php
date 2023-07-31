@@ -19,21 +19,21 @@ trait PartitionableAssociationTrait
      *
      * @var int|null
      */
-    protected $limit;
+    protected ?int $limit = null;
 
     /**
      * The filter strategy.
      *
      * @var string
      */
-    protected $filterStrategy = self::FILTER_IN_SUBQUERY_TABLE;
+    protected string $filterStrategy = self::FILTER_IN_SUBQUERY_TABLE;
 
     /**
      * Whether the single result mode is enabled.
      *
      * @var bool
      */
-    protected $_isSingleResultEnabled = false;
+    protected bool $_isSingleResultEnabled = false;
 
     /**
      * Returns the partition limit.
@@ -187,20 +187,20 @@ trait PartitionableAssociationTrait
     /**
      * @inheritDoc
      */
-    protected function _options(array $opts): void
+    protected function _options(array $options): void
     {
-        parent::_options($opts);
+        parent::_options($options);
 
-        if (isset($opts['limit'])) {
-            $this->setLimit($opts['limit']);
+        if (isset($options['limit'])) {
+            $this->setLimit($options['limit']);
         }
 
-        if (isset($opts['filterStrategy'])) {
-            $this->setFilterStrategy($opts['filterStrategy']);
+        if (isset($options['filterStrategy'])) {
+            $this->setFilterStrategy($options['filterStrategy']);
         }
 
-        if (isset($opts['singleResult'])) {
-            if ($opts['singleResult']) {
+        if (isset($options['singleResult'])) {
+            if ($options['singleResult']) {
                 $this->enableSingleResult();
             } else {
                 $this->disableSingleResult();

@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace Icings\Partitionable\Test\TestApp\Model\Table;
 
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 
 class CommentsTable extends Table
@@ -36,7 +36,7 @@ class CommentsTable extends Table
             ->setSort(['Replies.id' => 'ASC']);
     }
 
-    public function findPublished(Query $query, array $options): Query
+    public function findPublished(SelectQuery $query, array $options): SelectQuery
     {
         return $query->where([
             $this->aliasField('published') => true,
