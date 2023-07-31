@@ -750,6 +750,12 @@ class PartitionedHasManyTest extends TestCase
                     ->group([
                         'TopComments.id',
                         'TopComments.id2',
+                        'TopComments.author_id',
+                        'TopComments.article_id',
+                        'TopComments.article_id2',
+                        'TopComments.votes',
+                        'TopComments.body',
+                        'TopComments.published',
                     ])
                     ->having(['alias' => 123], ['alias' => 'integer']);
             })

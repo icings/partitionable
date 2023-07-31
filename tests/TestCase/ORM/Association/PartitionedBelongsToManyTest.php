@@ -792,11 +792,15 @@ class PartitionedBelongsToManyTest extends TestCase
                     ->group([
                         'TopGraduatedCourses.id',
                         'TopGraduatedCourses.id2',
+                        'TopGraduatedCourses.university_id',
+                        'TopGraduatedCourses.name',
+                        'TopGraduatedCourses.online',
                         'CourseMemberships.id',
                         'CourseMemberships.student_id',
                         'CourseMemberships.student_id2',
                         'CourseMemberships.course_id',
                         'CourseMemberships.course_id2',
+                        'CourseMemberships.grade',
                     ])
                     ->having(['alias' => 123], ['alias' => 'integer']);
             })
