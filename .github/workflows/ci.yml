@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - cake5
   pull_request:
     branches:
       - '*'
@@ -12,28 +13,13 @@ on:
 
 jobs:
   tests:
-    runs-on: ${{ fromJSON('["ubuntu-18.04", "ubuntu-20.04"]')[matrix.db-type == 'sqlite'] }}
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         db-type: [sqlite, mysql, mariadb, pgsql, sqlsrv]
-        php-version: ['7.2', '7.4', '8.0', '8.1']
-        cakephp-version: ['4.1.0', '4.2.0', 'latest']
-        exclude:
-          - php-version: '7.2'
-            cakephp-version: 'latest'
-          - php-version: '7.4'
-            cakephp-version: '4.1.0'
-          - php-version: '8.0'
-            cakephp-version: '4.1.0'
-          - php-version: '8.1'
-            cakephp-version: '4.1.0'
-          - php-version: '7.4'
-            cakephp-version: '4.2.0'
-          - php-version: '8.0'
-            cakephp-version: '4.2.0'
-          - php-version: '8.1'
-            cakephp-version: '4.2.0'
+        php-version: ['8.1', '8.2']
+        cakephp-version: ['latest']
 
     name: |
       ${{
@@ -42,12 +28,12 @@ jobs:
           matrix.db-type,
           matrix.php-version,
           matrix.cakephp-version,
-          fromJSON('["", " - Coverage"]')[matrix.php-version == '7.4' && matrix.cakephp-version == 'latest']
+          fromJSON('["", " - Coverage"]')[matrix.php-version == '8.2' && matrix.cakephp-version == 'latest']
         )
       }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup MySQL latest
         if: matrix.db-type == 'mysql'
@@ -58,29 +44,29 @@ jobs:
           sleep 10
 
       - name: Setup MariaDB latest
-        if: matrix.db-type == 'mariadb' && matrix.php-version != '7.2'
+        if: matrix.db-type == 'mariadb' && matrix.php-version != '8.1'
         run: |
-          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb \
+          docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb:latest \
           --disable-log-bin --wait_timeout=240 --connect_timeout=240 --max_allowed_packet=128M
           sleep 10
 
       - name: Setup MariaDB lowest (10.2)
-        if: matrix.db-type == 'mariadb' && matrix.php-version == '7.2'
+        if: matrix.db-type == 'mariadb' && matrix.php-version == '8.1'
         run: |
           docker run --rm --name=mariadb -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=test -p 3306:3306 -d mariadb:10.2 \
           --disable-log-bin --wait_timeout=240 --connect_timeout=240 --max_allowed_packet=128M
           sleep 10
 
       - name: Setup PostgreSQL latest
-        if: matrix.db-type == 'pgsql' && matrix.php-version != '7.2'
+        if: matrix.db-type == 'pgsql' && matrix.php-version != '8.1'
         run: docker run --rm --name=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=test -p 5432:5432 -d postgres
 
       - name: Setup PostgreSQL lowest (9.4)
-        if: matrix.db-type == 'pgsql' && matrix.php-version == '7.2'
+        if: matrix.db-type == 'pgsql' && matrix.php-version == '8.1'
         run: docker run --rm --name=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=test -p 5432:5432 -d postgres:9.4
 
       - name: Setup SQL Server 2019
-        if: matrix.db-type == 'sqlsrv' && matrix.php-version != '7.2'
+        if: matrix.db-type == 'sqlsrv' && matrix.php-version != '8.1'
         run: |
           docker run --rm --name=sqlsrv -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Sql!Server' -e 'MSSQL_PID=Express' -p 1433:1433 \
             -d mcr.microsoft.com/mssql/server:2019-CU10-ubuntu-20.04
@@ -88,7 +74,7 @@ jobs:
           docker exec sqlsrv /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Sql!Server -Q "create database test;"
 
       - name: Setup SQL Server 2017
-        if: matrix.db-type == 'sqlsrv' && matrix.php-version == '7.2'
+        if: matrix.db-type == 'sqlsrv' && matrix.php-version == '8.1'
         run: |
           docker run --rm --name=sqlsrv -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Sql!Server' -e 'MSSQL_PID=Express' -p 1433:1433 \
             -d mcr.microsoft.com/mssql/server:2017-CU22-ubuntu-16.04
@@ -104,17 +90,17 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Get date part for cache key
         id: key-date
-        run: echo "::set-output name=date::$(date +'%Y-%m')"
+        run: echo "date=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
 
       - name: Cache composer dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
+          key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}
 
       - name: Composer install
         run: |
@@ -124,7 +110,7 @@ jobs:
           composer install --optimize-autoloader
 
       - name: Setup problem matchers for PHPUnit
-        if: matrix.php-version != '7.4' && matrix.cakephp-version != 'latest'
+        if: matrix.php-version != '8.2' && matrix.cakephp-version != 'latest'
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Run PHPUnit
@@ -135,27 +121,29 @@ jobs:
           if [[ ${{ matrix.db-type }} == 'pgsql' ]]; then export DATABASE_URL='postgres://postgres:postgres@127.0.0.1/postgres'; fi
           if [[ ${{ matrix.db-type }} == 'sqlsrv' ]]; then export DATABASE_URL='sqlserver://sa:Sql!Server@127.0.0.1/test'; fi
 
-          if [[ ${{ matrix.php-version }} == '7.4' && ${{ matrix.cakephp-version }} == 'latest' ]]; then
+          if [[ ${{ matrix.php-version }} == '8.2' && ${{ matrix.cakephp-version }} == 'latest' ]]; then
             composer test-coverage
           else
             composer test
           fi
 
       - name: Code Coverage Report
-        if: success() && matrix.php-version == '7.4' && matrix.cakephp-version == 'latest'
-        uses: codecov/codecov-action@v1
+        if: success() && matrix.php-version == '8.2' && matrix.cakephp-version == 'latest'
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml,coverage-autoquote.xml
 
   cs-stan:
     name: Coding Standards & Static Analysis
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '8.1'
           extensions: mbstring, intl
           coverage: none
           tools: cs2pr

@@ -13,7 +13,7 @@ use Cake\Database\Expression\OrderByExpression;
 use Cake\Database\ExpressionInterface;
 use Cake\Event\EventInterface;
 use Cake\Event\EventManager;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Closure;
 use Icings\Partitionable\ORM\Association\PartitionableAssociationInterface;
 use RuntimeException;
@@ -30,35 +30,35 @@ trait PartitionableSelectLoaderTrait
      *
      * @var Closure|null
      */
-    protected static $_cleanUpListener = null;
+    protected static ?Closure $_cleanUpListener = null;
 
     /**
      * Map of tracking IDs and clean up listener callables.
      *
      * @var array<int, Closure>
      */
-    protected static $_cleanUpListenerMap = [];
+    protected static array $_cleanUpListenerMap = [];
 
     /**
      * The next tracking ID.
      *
      * @var int
      */
-    protected static $_nextTrackingId = 1;
+    protected static int $_nextTrackingId = 1;
 
     /**
      * The partition limit.
      *
      * @var int|null
      */
-    protected $limit;
+    protected ?int $limit = null;
 
     /**
      * The filter strategy.
      *
      * @var string
      */
-    protected $filterStrategy;
+    protected string $filterStrategy = PartitionableAssociationInterface::FILTER_IN_SUBQUERY_TABLE;
 
     /**
      * @inheritDoc
@@ -95,7 +95,7 @@ trait PartitionableSelectLoaderTrait
     /**
      * @inheritDoc
      */
-    protected function _addFilteringCondition(Query $query, $key, $filter): Query
+    protected function _addFilteringCondition(SelectQuery $query, array|string $key, mixed $filter): SelectQuery
     {
         // Ensure that non-composite keys are not being passed as an array,
         // in order to avoid tuple comparison expressions being used when
@@ -113,7 +113,7 @@ trait PartitionableSelectLoaderTrait
     /**
      * @inheritDoc
      */
-    protected function _buildQuery(array $options): Query
+    protected function _buildQuery(array $options): SelectQuery
     {
         $fetchQuery =
             parent::_buildQuery($options)
@@ -129,7 +129,7 @@ trait PartitionableSelectLoaderTrait
 
         $order = $this->_getOrder($dummy);
         if ($order) {
-            $fetchQuery->order($order, true);
+            $fetchQuery->orderBy($order, true);
         }
 
         // Clear states that must not apply to neither the fetch nor the rank query.
@@ -165,7 +165,7 @@ trait PartitionableSelectLoaderTrait
 
         // Clear states that must not apply to neither the fetch nor the rank query.
         $this->_addCleanupListener($fetchQuery);
-        $this->_addCleanupListener($rankQuery->order([], true), ['order' => true]);
+        $this->_addCleanupListener($rankQuery->orderBy([], true), ['order' => true]);
 
         return $fetchQuery;
     }
@@ -174,11 +174,11 @@ trait PartitionableSelectLoaderTrait
      * Adds a listener for the query to ensure possibly conflicting states added
      * in `Model.beforeFind` are being cleared.
      *
-     * @param Query $query The query on which to add the cleanup listener.
+     * @param SelectQuery $query The query on which to add the cleanup listener.
      * @param array<string, bool> $removals Defines what query parts should be cleaned up.
-     * @return Query
+     * @return SelectQuery
      */
-    protected function _addCleanupListener(Query $query, array $removals = []): Query
+    protected function _addCleanupListener(SelectQuery $query, array $removals = []): SelectQuery
     {
         $removals += [
             'limit' => true,
@@ -192,11 +192,11 @@ trait PartitionableSelectLoaderTrait
         if (static::$_cleanUpListener === null) {
             static::$_cleanUpListener = function (
                 EventInterface $event,
-                Query $query
+                SelectQuery $query
             ) use (
                 $trackingOptionName,
                 $processedStateOptionName
-            ): Query {
+            ): SelectQuery {
                 // Scope the listener to specific queries in order to avoid states
                 // being messed with when the listener is triggered for other queries
                 // of the same repository. Furthermore, this ensures that the listener
@@ -253,11 +253,11 @@ trait PartitionableSelectLoaderTrait
         if (!isset(static::$_cleanUpListenerMap[$trackingId])) {
             $listener = function (
                 EventInterface $event,
-                Query $query
+                SelectQuery $query
             ) use (
                 $removals,
                 $processedStateOptionName
-            ): Query {
+            ): SelectQuery {
                 if ($removals['limit']) {
                     $query->limit(null);
                 }
@@ -267,7 +267,7 @@ trait PartitionableSelectLoaderTrait
                 }
 
                 if ($removals['order']) {
-                    $query->order([], true);
+                    $query->orderBy([], true);
                 }
 
                 $query->applyOptions([$processedStateOptionName => true]);
@@ -284,10 +284,10 @@ trait PartitionableSelectLoaderTrait
     /**
      * Creates a dummy query that has all its `beforeFind` modifications applied.
      *
-     * @param Query $query The query from which to create the dummy query.
-     * @return Query
+     * @param SelectQuery $query The query from which to create the dummy query.
+     * @return SelectQuery
      */
-    protected function _getDummyQuery(Query $query): Query
+    protected function _getDummyQuery(SelectQuery $query): SelectQuery
     {
         $dummy = clone $query;
         // Run listeners in order to be able to fetch stuff that was set in a
@@ -300,11 +300,11 @@ trait PartitionableSelectLoaderTrait
     /**
      * Obtains the partition limit.
      *
-     * @param Query $query The query that might hold the limit option.
+     * @param SelectQuery $query The query that might hold the limit option.
      * @param int|null $limit The limit to use in case no limit is set on the query.
      * @return int|null
      */
-    protected function _getLimit(Query $query, ?int $limit): ?int
+    protected function _getLimit(SelectQuery $query, ?int $limit): ?int
     {
         // The limit set on the query should win over the limit set in the
         // association configuration in order to allow changing the behavior
@@ -326,10 +326,10 @@ trait PartitionableSelectLoaderTrait
     /**
      * Obtains the partition order.
      *
-     * @param Query $query The query that might hold the order.
+     * @param SelectQuery $query The query that might hold the order.
      * @return array<ExpressionInterface|string>|null
      */
-    protected function _getOrder(Query $query): ?array
+    protected function _getOrder(SelectQuery $query): ?array
     {
         // The order set on the query should win over the order set in the
         // association configuration in order to allow changing the behavior

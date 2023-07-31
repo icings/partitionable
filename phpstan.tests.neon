@@ -1,19 +1,15 @@
 parameters:
     checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
     bootstrapFiles:
         - tests/bootstrap.php
     ignoreErrors:
         -
-            message: "#^Parameter \\#2 \\$results of method Icings\\\\Partitionable\\\\Test\\\\TestCase\\:\\:assertResultsEqualFile\\(\\) expects array, array\\|Cake\\\\Datasource\\\\EntityInterface given\\.$#"
-            count: 1
-            path: tests/TestCase/ORM/Association/PartitionedBelongsToManyTest.php
-
-        -
             message: "#^Call to an undefined method object\\:\\:enableAutoQuoting\\(\\)\\.$#"
-            count: 2
-            path: tests/TestCase/TestSuite.php
+            count: 1
+            path: tests/bootstrap.php
 
         -
-            message: "#^Unsafe usage of new static\\(\\)\\.$#"
+            message: "#^Parameter \\#1 \\$file of method Cake\\\\TestSuite\\\\Fixture\\\\SchemaLoader\\:\\:loadInternalFile\\(\\) expects string#"
             count: 1
-            path: tests/TestCase/TestSuite.php
+            path: tests/bootstrap.php

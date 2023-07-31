@@ -13,14 +13,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class UniversitiesFixture extends TestFixture
 {
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'name' => ['type' => 'string'],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id']],
-        ],
-    ];
-
     public function init(): void
     {
         $this->records = [

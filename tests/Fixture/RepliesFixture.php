@@ -5,21 +5,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class RepliesFixture extends TestFixture
 {
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'author_id' => ['type' => 'integer'],
-        'comment_id' => ['type' => 'integer'],
-        'comment_id2' => ['type' => 'integer'],
-        'body' => ['type' => 'text'],
-        '_indexes' => [
-            'replies_author_id' => ['type' => 'index', 'columns' => ['author_id']],
-            'replies_comment_id' => ['type' => 'index', 'columns' => ['comment_id', 'comment_id2']],
-        ],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id']],
-        ],
-    ];
-
     public function init(): void
     {
         $this->records = [

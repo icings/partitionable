@@ -6,14 +6,14 @@
 [![Latest Version][ico-version]][link-version]
 [![Software License][ico-license]][link-license]
 
-[ico-stability]: https://img.shields.io/badge/stability-experimental-orange.svg?style=flat-square
-[ico-build]: https://img.shields.io/github/workflow/status/icings/partitionable/CI/master?style=flat-square
-[ico-coverage]: https://img.shields.io/codecov/c/github/icings/partitionable.svg?style=flat-square
+[ico-stability]: https://img.shields.io/badge/stability-pre--release-darkturquoise.svg?style=flat-square
+[ico-build]: https://img.shields.io/github/actions/workflow/status/icings/partitionable/ci.yml?branch=cake5&style=flat-square
+[ico-coverage]: https://img.shields.io/codecov/c/github/icings/partitionable/cake5.svg?style=flat-square
 [ico-version]: https://img.shields.io/packagist/v/icings/partitionable.svg?style=flat-square&label=latest
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
 
-[link-build]: https://github.com/icings/partitionable/actions/workflows/ci.yml?query=branch%3Amaster
-[link-coverage]: https://codecov.io/github/icings/partitionable
+[link-build]: https://github.com/icings/partitionable/actions/workflows/ci.yml?query=branch%3Acake5
+[link-coverage]: https://codecov.io/github/icings/partitionable/tree/cake5
 [link-version]: https://packagist.org/packages/icings/partitionable
 [link-license]: LICENSE.txt
 
@@ -22,7 +22,8 @@ A set of partitionable associations for the CakePHP ORM, allowing for basic limi
 
 ## Requirements
 
-* CakePHP ORM 4.1+
+* CakePHP ORM 5.0+ (use the [1.x branch](https://github.com/icings/partitionable/tree/1.x) of this plugin if you're
+  looking for CakePHP 4 compatibility).
 * A DBMS supported by CakePHP with window function support (MySQL 8, MariaDB 10.2, Postgres 9.4, SQL Sever 2017,
   Sqlite 3.25).
 
@@ -32,7 +33,7 @@ A set of partitionable associations for the CakePHP ORM, allowing for basic limi
 Use [Composer](https://getcomposer.org) to add the library to your project:
 
 ```bash
-composer require icings/partitionable
+composer require icings/partitionable:cake5-dev
 ```
 
 
@@ -206,7 +207,7 @@ The limit and the sort order can be applied/changed on the fly in the containmen
 ```php
 $articlesQuery = $this->Articles
     ->find()
-    ->contain('TopComments', function (\Cake\ORM\Query $query) {
+    ->contain('TopComments', function (\Cake\ORM\Query\SelectQuery $query) {
         return $query
             ->limit(10)
             ->order([
@@ -222,7 +223,7 @@ option `partitionableQueryType`, which would hold the value `fetcher`:
 ```php
 $this->Articles->TopComments
     ->getEventManager()
-    ->on('Model.beforeFind', function ($event, \Cake\ORM\Query $query, \ArrayObject $options) {
+    ->on('Model.beforeFind', function ($event, \Cake\ORM\Query\SelectQuery $query, \ArrayObject $options) {
         if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
             $query
               ->limit(10)

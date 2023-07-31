@@ -13,18 +13,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class CommentsTranslationsFixture extends TestFixture
 {
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'locale' => ['type' => 'string'],
-        'body' => ['type' => 'text'],
-        '_indexes' => [
-            'comments_translations_locale' => ['type' => 'index', 'columns' => ['locale']],
-        ],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id', 'locale']],
-        ],
-    ];
-
     public function init(): void
     {
         $this->records = [

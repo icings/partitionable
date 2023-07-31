@@ -13,23 +13,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class CoursesI18nFixture extends TestFixture
 {
-    public $table = 'courses_i18n';
-
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'locale' => ['type' => 'string'],
-        'model' => ['type' => 'string'],
-        'foreign_key' => ['type' => 'integer'],
-        'field' => ['type' => 'string'],
-        'content' => ['type' => 'text'],
-        '_indexes' => [
-            'courses_I18N_FIELD' => ['type' => 'index', 'columns' => ['model', 'foreign_key', 'field']],
-        ],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id']],
-            'courses_I18N_LOCALE_FIELD' => ['type' => 'unique', 'columns' => ['locale', 'model', 'foreign_key', 'field']],
-        ],
-    ];
+    public string $table = 'courses_i18n';
 
     public function init(): void
     {

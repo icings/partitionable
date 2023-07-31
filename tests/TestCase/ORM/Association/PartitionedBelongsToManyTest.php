@@ -14,11 +14,12 @@ use Cake\Database\Driver\Mysql;
 use Cake\Database\Driver\Sqlserver;
 use Cake\Database\Expression\CommonTableExpression;
 use Cake\Database\Expression\OrderClauseExpression;
+use Cake\Database\Query\SelectQuery as DatabaseSelectQuery;
 use Cake\I18n\I18n;
 use Cake\ORM\Association;
 use Cake\ORM\Behavior\Translate\EavStrategy;
 use Cake\ORM\Behavior\Translate\ShadowTableStrategy;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Icings\Partitionable\ORM\Association\Loader\PartitionableSelectWithPivotLoader;
 use Icings\Partitionable\ORM\Association\PartitionableBelongsToMany;
 use Icings\Partitionable\Test\Fixture\CourseMembershipsFixture;
@@ -35,7 +36,7 @@ use RuntimeException;
 
 class PartitionedBelongsToManyTest extends TestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         CourseMembershipsFixture::class,
         CoursesFixture::class,
         CoursesI18nFixture::class,
@@ -44,10 +45,7 @@ class PartitionedBelongsToManyTest extends TestCase
         UniversitiesFixture::class,
     ];
 
-    /**
-     * @var StudentsTable
-     */
-    protected $_studentsTable;
+    protected StudentsTable $_studentsTable;
 
     public function setUp(): void
     {
@@ -393,10 +391,9 @@ class PartitionedBelongsToManyTest extends TestCase
         );
 
         $this->_studentsTable->getConnection()
-            ->query(
+            ->execute(
                 'SET SESSION sql_mode=CONCAT(@@SESSION.sql_mode, ",ONLY_FULL_GROUP_BY")'
-            )
-            ->execute();
+            );
 
         /** @var PartitionableBelongsToMany $association */
         $association = $this->_studentsTable->getAssociation('TopGraduatedCourses');
@@ -446,7 +443,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $association
             ->setStrategy($loaderStrategy)
             ->setFilterStrategy($filterStrategy)
-            ->setSort(function ($exp, Query $query) {
+            ->setSort(function ($exp, SelectQuery $query) {
                 return [
                     new OrderClauseExpression(
                         $query->identifier('CourseMemberships.grade'),
@@ -497,10 +494,10 @@ class PartitionedBelongsToManyTest extends TestCase
         $query = $this->_studentsTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopGraduatedCourses', function (Query $query) {
+            ->contain('TopGraduatedCourses', function (SelectQuery $query) {
                 return $query
                     ->limit(2)
-                    ->order([
+                    ->orderBy([
                         'CourseMemberships.grade' => 'DESC',
                     ]);
             })
@@ -542,11 +539,11 @@ class PartitionedBelongsToManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query, Arrayobject $options) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query, Arrayobject $options) {
                 if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
                     $query
                         ->limit(2)
-                        ->order([
+                        ->orderBy([
                             'CourseMemberships.grade' => 'DESC',
                         ]);
                 }
@@ -575,7 +572,7 @@ class PartitionedBelongsToManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
                 return $query->applyOptions([
                     PartitionableSelectWithPivotLoader::class . '_trackingId' => null,
                 ]);
@@ -602,7 +599,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $this->_studentsTable
             ->getAssociation('TopGraduatedCourses')
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
                 return $query
                     ->limit(2)
                     ->offset(3);
@@ -618,7 +615,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $query = $this->_studentsTable
             ->getAssociation('TopGraduatedCourses')
             ->find()
-            ->orderAsc('TopGraduatedCourses.id')
+            ->orderByAsc('TopGraduatedCourses.id')
             ->disableHydration();
 
         $this->assertResultsEqualFile(__FUNCTION__ . '.SameRepo', $query->toArray());
@@ -642,7 +639,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $query = $this->_studentsTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopGraduatedCourses', function (Query $query) {
+            ->contain('TopGraduatedCourses', function (SelectQuery $query) {
                 return $query
                     ->contain('Students.Universities.Courses')
                     ->contain('Universities.Courses');
@@ -664,7 +661,7 @@ class PartitionedBelongsToManyTest extends TestCase
         if ($this->_studentsTable->getConnection()->getDriver() instanceof Mysql) {
             $stmt = $this->_studentsTable
                 ->getConnection()
-                ->query("SET @@session.sql_mode = CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode);");
+                ->execute("SET @@session.sql_mode = CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode);");
             $this->assertTrue($stmt->execute());
             $stmt->closeCursor();
         }
@@ -682,7 +679,7 @@ class PartitionedBelongsToManyTest extends TestCase
         $query = $this->_studentsTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopGraduatedCourses', function (Query $query) {
+            ->contain('TopGraduatedCourses', function (SelectQuery $query) {
                 $typeMap = $query->getSelectTypeMap();
                 $typeMap->addDefaults([
                     'aliased' => 'integer',
@@ -708,7 +705,7 @@ class PartitionedBelongsToManyTest extends TestCase
                     ])
                     ->enableAutoFields()
                     ->leftJoin([
-                        'JoinAlias' => $query->getConnection()->newQuery()->select(['foo' => 1]),
+                        'JoinAlias' => $query->getConnection()->selectQuery()->select(['foo' => 1]),
                     ])
                     ->leftJoinWith('Students')
                     ->contain('Students.Universities.Courses')
@@ -716,7 +713,7 @@ class PartitionedBelongsToManyTest extends TestCase
                     ->where([
                         'TopGraduatedCourses.id <' => 10000,
                     ])
-                    ->group([
+                    ->groupBy([
                         'CourseMemberships.id',
                         'CourseMemberships.student_id',
                         'CourseMemberships.student_id2',
@@ -741,12 +738,12 @@ class PartitionedBelongsToManyTest extends TestCase
                         ->innerJoin([
                             'cte' => $query
                                 ->getConnection()
-                                ->newQuery()
+                                ->selectQuery()
                                 ->select(['cte_field' => 1]),
                         ]);
                 } else {
                     $query
-                        ->with(function (CommonTableExpression $cte, \Cake\Database\Query $query) {
+                        ->with(function (CommonTableExpression $cte, DatabaseSelectQuery $query) {
                             $cteQuery = $query
                                 ->select(['cte_field' => 1]);
 
@@ -759,7 +756,7 @@ class PartitionedBelongsToManyTest extends TestCase
 
                 return $query;
             })
-            ->orderAsc('id')
+            ->orderByAsc('id')
             ->disableHydration();
 
         $this->assertResultsEqualFile(__FUNCTION__, $query->toArray());
@@ -785,18 +782,22 @@ class PartitionedBelongsToManyTest extends TestCase
         $query = $this->_studentsTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopGraduatedCourses', function (Query $query) {
+            ->contain('TopGraduatedCourses', function (SelectQuery $query) {
                 return $query
                     ->select(['alias' => 123])
                     ->enableAutoFields()
-                    ->group([
+                    ->groupBy([
                         'TopGraduatedCourses.id',
                         'TopGraduatedCourses.id2',
+                        'TopGraduatedCourses.university_id',
+                        'TopGraduatedCourses.name',
+                        'TopGraduatedCourses.online',
                         'CourseMemberships.id',
                         'CourseMemberships.student_id',
                         'CourseMemberships.student_id2',
                         'CourseMemberships.course_id',
                         'CourseMemberships.course_id2',
+                        'CourseMemberships.grade',
                     ])
                     ->having(['alias' => 123], ['alias' => 'integer']);
             })

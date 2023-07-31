@@ -13,18 +13,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class CoursesTranslationsFixture extends TestFixture
 {
-    public $fields = [
-        'id' => ['type' => 'integer'],
-        'locale' => ['type' => 'string'],
-        'name' => ['type' => 'text'],
-        '_indexes' => [
-            'courses_translations_locale' => ['type' => 'index', 'columns' => ['locale']],
-        ],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id', 'locale']],
-        ],
-    ];
-
     public function init(): void
     {
         $this->records = [

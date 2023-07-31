@@ -14,11 +14,12 @@ use Cake\Database\Driver\Mysql;
 use Cake\Database\Driver\Sqlserver;
 use Cake\Database\Expression\CommonTableExpression;
 use Cake\Database\Expression\OrderClauseExpression;
+use Cake\Database\Query\SelectQuery as DatabaseSelectQuery;
 use Cake\I18n\I18n;
 use Cake\ORM\Association;
 use Cake\ORM\Behavior\Translate\EavStrategy;
 use Cake\ORM\Behavior\Translate\ShadowTableStrategy;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Icings\Partitionable\ORM\Association\Loader\PartitionableSelectLoader;
 use Icings\Partitionable\ORM\Association\PartitionableHasMany;
 use Icings\Partitionable\Test\Fixture\ArticlesFixture;
@@ -35,7 +36,7 @@ use RuntimeException;
 
 class PartitionedHasManyTest extends TestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         ArticlesFixture::class,
         AuthorsFixture::class,
         CommentsFixture::class,
@@ -44,10 +45,7 @@ class PartitionedHasManyTest extends TestCase
         CommentsTranslationsFixture::class,
     ];
 
-    /**
-     * @var ArticlesTable
-     */
-    protected $_articlesTable;
+    protected ArticlesTable $_articlesTable;
 
     public function setUp(): void
     {
@@ -343,10 +341,9 @@ class PartitionedHasManyTest extends TestCase
         );
 
         $this->_articlesTable->getConnection()
-            ->query(
+            ->execute(
                 'SET SESSION sql_mode=CONCAT(@@SESSION.sql_mode, ",ONLY_FULL_GROUP_BY")'
-            )
-            ->execute();
+            );
 
         /** @var PartitionableHasMany $association */
         $association = $this->_articlesTable->getAssociation('TopComments');
@@ -393,7 +390,7 @@ class PartitionedHasManyTest extends TestCase
         $association
             ->setStrategy($loaderStrategy)
             ->setFilterStrategy($filterStrategy)
-            ->setSort(function ($exp, Query $query) {
+            ->setSort(function ($exp, SelectQuery $query) {
                 return [
                     new OrderClauseExpression(
                         $query->identifier('TopComments.votes'),
@@ -445,10 +442,10 @@ class PartitionedHasManyTest extends TestCase
         $query = $this->_articlesTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopComments', function (Query $query) {
+            ->contain('TopComments', function (SelectQuery $query) {
                 return $query
                     ->limit(2)
-                    ->order([
+                    ->orderBy([
                         'TopComments.votes' => 'ASC',
                     ]);
             })
@@ -488,11 +485,11 @@ class PartitionedHasManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query, ArrayObject $options) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query, ArrayObject $options) {
                 if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
                     $query
                         ->limit(2)
-                        ->order([
+                        ->orderBy([
                             'TopComments.votes' => 'ASC',
                         ]);
                 }
@@ -530,7 +527,7 @@ class PartitionedHasManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
                 return $query->applyOptions([
                     PartitionableSelectLoader::class . '_trackingId' => null,
                 ]);
@@ -557,7 +554,7 @@ class PartitionedHasManyTest extends TestCase
         $this->_articlesTable
             ->getAssociation('TopComments')
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, Query $query) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
                 return $query
                     ->limit(2)
                     ->offset(3);
@@ -573,7 +570,7 @@ class PartitionedHasManyTest extends TestCase
         $query = $this->_articlesTable
             ->getAssociation('TopComments')
             ->find()
-            ->orderAsc('TopComments.id')
+            ->orderByAsc('TopComments.id')
             ->disableHydration();
 
         $this->assertResultsEqualFile(__FUNCTION__ . '.SameRepo', $query->toArray());
@@ -598,7 +595,7 @@ class PartitionedHasManyTest extends TestCase
         $query = $this->_articlesTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopComments', function (Query $query) {
+            ->contain('TopComments', function (SelectQuery $query) {
                 return $query
                     ->contain('Articles.Authors.Comments')
                     ->contain('Replies.Comments');
@@ -620,7 +617,7 @@ class PartitionedHasManyTest extends TestCase
         if ($this->_articlesTable->getConnection()->getDriver() instanceof Mysql) {
             $stmt = $this->_articlesTable
                 ->getConnection()
-                ->query("SET @@session.sql_mode = CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode);");
+                ->execute("SET @@session.sql_mode = CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode);");
             $this->assertTrue($stmt->execute());
             $stmt->closeCursor();
         }
@@ -638,7 +635,7 @@ class PartitionedHasManyTest extends TestCase
         $query = $this->_articlesTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopComments', function (Query $query) {
+            ->contain('TopComments', function (SelectQuery $query) {
                 $typeMap = $query->getSelectTypeMap();
                 $typeMap->addDefaults([
                     'aliased' => 'integer',
@@ -664,7 +661,7 @@ class PartitionedHasManyTest extends TestCase
                     ])
                     ->enableAutoFields()
                     ->leftJoin([
-                        'JoinAlias' => $query->getConnection()->newQuery()->select(['foo' => 1]),
+                        'JoinAlias' => $query->getConnection()->selectQuery()->select(['foo' => 1]),
                     ])
                     ->leftJoinWith('Replies')
                     ->contain('Articles.Authors.Comments')
@@ -672,7 +669,7 @@ class PartitionedHasManyTest extends TestCase
                     ->where([
                         'TopComments.votes <' => 10000,
                     ])
-                    ->group([
+                    ->groupBy([
                         'TopComments.id',
                         'TopComments.id2',
                         'TopComments.author_id',
@@ -699,12 +696,12 @@ class PartitionedHasManyTest extends TestCase
                         ->innerJoin([
                             'cte' => $query
                                 ->getConnection()
-                                ->newQuery()
+                                ->selectQuery()
                                 ->select(['cte_field' => 1]),
                         ]);
                 } else {
                     $query
-                        ->with(function (CommonTableExpression $cte, \Cake\Database\Query $query) {
+                        ->with(function (CommonTableExpression $cte, DatabaseSelectQuery $query) {
                             $cteQuery = $query
                                 ->select(['cte_field' => 1]);
 
@@ -717,7 +714,7 @@ class PartitionedHasManyTest extends TestCase
 
                 return $query;
             })
-            ->orderAsc('id')
+            ->orderByAsc('id')
             ->disableHydration();
 
         $this->assertResultsEqualFile(__FUNCTION__, $query->toArray());
@@ -743,13 +740,19 @@ class PartitionedHasManyTest extends TestCase
         $query = $this->_articlesTable
             ->find()
             ->select(['id', 'id2'])
-            ->contain('TopComments', function (Query $query) {
+            ->contain('TopComments', function (SelectQuery $query) {
                 return $query
                     ->select(['alias' => 123])
                     ->select($query->getRepository())
-                    ->group([
+                    ->groupBy([
                         'TopComments.id',
                         'TopComments.id2',
+                        'TopComments.author_id',
+                        'TopComments.article_id',
+                        'TopComments.article_id2',
+                        'TopComments.votes',
+                        'TopComments.body',
+                        'TopComments.published',
                     ])
                     ->having(['alias' => 123], ['alias' => 'integer']);
             })
