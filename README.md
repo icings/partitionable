@@ -365,6 +365,10 @@ The currently available strategies are:
   possible to emulate the required row numbering, these constructs are rather fragile and there's way too many
   situations in which they will break, respectively silently produce wrong results.
 
+* MariaDB >= 11.0 can crash with the default `FILTER_IN_SUBQUERY_TABLE` strategy when using the translate behavior with
+  `onlyTranslated` enabled (https://jira.mariadb.org/browse/MDEV-31793). It is strongly advised to use a different
+  filter strategy when you find yourself with that version and translate behavior config constellation!
+
 * Older MariaDB versions, when running in `ONLY_FULL_GROUP_BY` mode, erroneously require a `GROUP BY` clause to be
   present when using window functions like the one used for row numbering (https://jira.mariadb.org/browse/MDEV-17785).
   If you cannot use a version where that bug was fixed, you either have to disable `ONLY_FULL_GROUP_BY`, or add grouping
