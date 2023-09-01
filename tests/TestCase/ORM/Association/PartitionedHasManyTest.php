@@ -744,7 +744,7 @@ class PartitionedHasManyTest extends TestCase
             ->find()
             ->select(['id', 'id2'])
             ->contain('TopComments', function (Query $query) {
-                return $query
+                $query
                     ->select(['alias' => 123])
                     ->select($query->getRepository())
                     ->group([
@@ -758,6 +758,11 @@ class PartitionedHasManyTest extends TestCase
                         'TopComments.published',
                     ])
                     ->having(['alias' => 123], ['alias' => 'integer']);
+
+                $typeMap = $query->getSelectTypeMap();
+                $typeMap->addDefaults(['alias' => 'integer']);
+
+                return $query;
             })
             ->disableHydration();
 
