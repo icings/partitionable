@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Icings\Partitionable\Test;
 
 use Cake\Core\Configure;
+use Cake\Database\Driver;
+use Cake\Database\Driver\Mysql;
 use Cake\Database\Driver\Sqlserver;
 use Cake\Datasource\ConnectionManager;
 use Cake\I18n\I18n;
@@ -54,7 +56,29 @@ class TestCase extends \Cake\TestSuite\TestCase
         );
     }
 
-    public function filterStrategyDataProvider(): array
+    /**
+     * @see https://jira.mariadb.org/browse/MDEV-31793
+     */
+    public function skipInSubqueryCTEAndTableStrategyIfMariaDB11(string $strategy): void
+    {
+        /** @var Driver $driver */
+        $driver = ConnectionManager::get('default')->getDriver();
+
+        $this->skipIf(
+            in_array(
+                $strategy,
+                [
+                    PartitionableAssociationInterface::FILTER_IN_SUBQUERY_CTE,
+                    PartitionableAssociationInterface::FILTER_IN_SUBQUERY_TABLE,
+                ]
+            ) &&
+            $driver instanceof Mysql &&
+            substr($driver->version(), 0, 3) === '11.',
+            'This test currently randomly causes a segfault on MariaDB >= 11 (see MDEV-31793)'
+        );
+    }
+
+    public static function filterStrategyDataProvider(): array
     {
         $filterStrategies = [
             PartitionableAssociationInterface::FILTER_IN_SUBQUERY_CTE,
