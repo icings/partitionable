@@ -786,7 +786,7 @@ class PartitionedBelongsToManyTest extends TestCase
             ->find()
             ->select(['id', 'id2'])
             ->contain('TopGraduatedCourses', function (Query $query) {
-                return $query
+                $query
                     ->select(['alias' => 123])
                     ->enableAutoFields()
                     ->group([
@@ -803,6 +803,11 @@ class PartitionedBelongsToManyTest extends TestCase
                         'CourseMemberships.grade',
                     ])
                     ->having(['alias' => 123], ['alias' => 'integer']);
+
+                $typeMap = $query->getSelectTypeMap();
+                $typeMap->addDefaults(['alias' => 'integer']);
+
+                return $query;
             })
             ->disableHydration();
 
