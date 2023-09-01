@@ -853,6 +853,7 @@ class PartitionedBelongsToManyTest extends TestCase
     public function testTranslationsEavOnlyTranslated(string $loaderStrategy, string $filterStrategy): void
     {
         $this->skipInSubqueryCTEStrategyIfSqlServer($filterStrategy);
+        $this->skipInSubqueryCTEAndTableStrategyIfMariaDB11($filterStrategy);
 
         I18n::setLocale('de_DE');
 
@@ -941,6 +942,7 @@ class PartitionedBelongsToManyTest extends TestCase
     public function testTranslationsShadowTableOnlyTranslated(string $loaderStrategy, string $filterStrategy): void
     {
         $this->skipInSubqueryCTEStrategyIfSqlServer($filterStrategy);
+        $this->skipInSubqueryCTEAndTableStrategyIfMariaDB11($filterStrategy);
 
         I18n::setLocale('de_DE');
 
