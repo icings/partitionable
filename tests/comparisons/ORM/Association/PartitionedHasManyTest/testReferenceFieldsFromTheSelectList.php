@@ -5,7 +5,7 @@ return [
         'id2' => 2,
         'top_comments' => [
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 4,
                 'id2' => 5,
                 'article_id' => 1,
@@ -16,7 +16,7 @@ return [
                 'published' => false,
             ],
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 3,
                 'id2' => 4,
                 'article_id' => 1,
@@ -27,7 +27,7 @@ return [
                 'published' => true,
             ],
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 2,
                 'id2' => 3,
                 'article_id' => 1,
@@ -44,7 +44,7 @@ return [
         'id2' => 3,
         'top_comments' => [
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 5,
                 'id2' => 6,
                 'article_id' => 2,
@@ -55,7 +55,7 @@ return [
                 'published' => true,
             ],
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 6,
                 'id2' => 7,
                 'article_id' => 2,
@@ -66,7 +66,7 @@ return [
                 'published' => true,
             ],
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 7,
                 'id2' => 8,
                 'article_id' => 2,
