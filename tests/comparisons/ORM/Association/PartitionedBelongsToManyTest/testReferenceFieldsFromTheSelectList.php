@@ -5,7 +5,7 @@ return [
         'id2' => 2,
         'top_graduated_courses' => [
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 2,
                 'id2' => 3,
                 'university_id' => 1,
@@ -21,7 +21,7 @@ return [
                 ]
             ],
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 3,
                 'id2' => 4,
                 'university_id' => 1,
@@ -43,7 +43,7 @@ return [
         'id2' => 3,
         'top_graduated_courses' => [
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 5,
                 'id2' => 6,
                 'university_id' => 1,
@@ -59,7 +59,7 @@ return [
                 ]
             ],
             [
-                'alias' => '123',
+                'alias' => 123,
                 'id' => 4,
                 'id2' => 5,
                 'university_id' => 1,
