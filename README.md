@@ -1,19 +1,17 @@
 # Partitionable
 
-![Stability][ico-stability]
 [![Build Status][ico-build]][link-build]
 [![Coverage Status][ico-coverage]][link-coverage]
 [![Latest Version][ico-version]][link-version]
 [![Software License][ico-license]][link-license]
 
-[ico-stability]: https://img.shields.io/badge/stability-pre--release-darkturquoise.svg?style=flat-square
-[ico-build]: https://img.shields.io/github/actions/workflow/status/icings/partitionable/ci.yml?branch=master&style=flat-square
-[ico-coverage]: https://img.shields.io/codecov/c/github/icings/partitionable.svg?style=flat-square
+[ico-build]: https://img.shields.io/github/actions/workflow/status/icings/partitionable/ci.yml?branch=1.x&style=flat-square
+[ico-coverage]: https://img.shields.io/codecov/c/github/icings/partitionable/1.x.svg?style=flat-square
 [ico-version]: https://img.shields.io/packagist/v/icings/partitionable.svg?style=flat-square&label=latest
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
 
-[link-build]: https://github.com/icings/partitionable/actions/workflows/ci.yml?query=branch%3Amaster
-[link-coverage]: https://codecov.io/github/icings/partitionable
+[link-build]: https://github.com/icings/partitionable/actions/workflows/ci.yml?query=branch%3A1.x
+[link-coverage]: https://app.codecov.io/github/icings/partitionable/tree/1.x
 [link-version]: https://packagist.org/packages/icings/partitionable
 [link-license]: LICENSE.txt
 
