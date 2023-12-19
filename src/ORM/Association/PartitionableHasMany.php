@@ -10,9 +10,14 @@ declare(strict_types=1);
 namespace Icings\Partitionable\ORM\Association;
 
 use Cake\ORM\Association\HasMany;
+use Cake\ORM\Table;
 use Closure;
 use Icings\Partitionable\ORM\Association\Loader\PartitionableSelectLoader;
 
+/**
+ * @template T of Table
+ * @extends HasMany<T>
+ */
 class PartitionableHasMany extends HasMany implements PartitionableAssociationInterface
 {
     use PartitionableAssociationTrait;
