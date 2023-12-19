@@ -10,9 +10,14 @@ declare(strict_types=1);
 namespace Icings\Partitionable\ORM\Association;
 
 use Cake\ORM\Association\BelongsToMany;
+use Cake\ORM\Table;
 use Closure;
 use Icings\Partitionable\ORM\Association\Loader\PartitionableSelectWithPivotLoader;
 
+/**
+ * @template T of Table
+ * @extends BelongsToMany<T>
+ */
 class PartitionableBelongsToMany extends BelongsToMany implements PartitionableAssociationInterface
 {
     use PartitionableAssociationTrait;
