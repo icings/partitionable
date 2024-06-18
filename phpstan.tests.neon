@@ -1,9 +1,11 @@
 parameters:
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
     bootstrapFiles:
         - tests/bootstrap.php
     ignoreErrors:
+        -
+            identifier: missingType.generics
+        -
+            identifier: missingType.iterableValue
         -
             message: "#^Call to an undefined method object\\:\\:enableAutoQuoting\\(\\)\\.$#"
             count: 1
