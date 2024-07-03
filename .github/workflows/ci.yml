@@ -34,10 +34,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup MySQL latest
+      - name: Setup MySQL 8
         if: matrix.db-type == 'mysql'
         run: |
-          docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test -p 3306:3306 -d mysql \
+          docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test -p 3306:3306 -d mysql:8 \
           --mysql-native-password=ON --disable-log-bin --wait_timeout=240 --connect_timeout=240 --max_allowed_packet=128M
           sleep 10
 
