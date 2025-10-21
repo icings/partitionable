@@ -539,7 +539,7 @@ class PartitionedBelongsToManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, SelectQuery $query, Arrayobject $options) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query, Arrayobject $options): void {
                 if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
                     $query
                         ->limit(2)
@@ -548,7 +548,7 @@ class PartitionedBelongsToManyTest extends TestCase
                         ]);
                 }
 
-                return $query;
+                $event->setResult($query);
             });
 
         $this->assertResultsEqualFile(__FUNCTION__, $queryClone->toArray());
@@ -572,10 +572,11 @@ class PartitionedBelongsToManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
-                return $query->applyOptions([
+            ->on('Model.beforeFind', function ($event, SelectQuery $query): void {
+                $query->applyOptions([
                     PartitionableSelectWithPivotLoader::class . '_trackingId' => null,
                 ]);
+                $event->setResult($query);
             });
 
         $query->toArray();
@@ -599,10 +600,11 @@ class PartitionedBelongsToManyTest extends TestCase
         $this->_studentsTable
             ->getAssociation('TopGraduatedCourses')
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
-                return $query
+            ->on('Model.beforeFind', function ($event, SelectQuery $query): void {
+                $query
                     ->limit(2)
                     ->offset(3);
+                $event->setResult($query);
             });
 
         $query = $this->_studentsTable
