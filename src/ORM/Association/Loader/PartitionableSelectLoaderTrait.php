@@ -196,7 +196,7 @@ trait PartitionableSelectLoaderTrait
             ) use (
                 $trackingOptionName,
                 $processedStateOptionName
-            ): SelectQuery {
+            ): void {
                 // Scope the listener to specific queries in order to avoid states
                 // being messed with when the listener is triggered for other queries
                 // of the same repository. Furthermore, this ensures that the listener
@@ -208,7 +208,9 @@ trait PartitionableSelectLoaderTrait
                     !array_key_exists($trackingOptionName, $queryOptions) ||
                     $queryOptions[$processedStateOptionName] === true
                 ) {
-                    return $query;
+                    $event->setResult($query);
+
+                    return;
                 }
 
                 $trackingId = $queryOptions[$trackingOptionName];
@@ -219,7 +221,8 @@ trait PartitionableSelectLoaderTrait
                     );
                 }
 
-                return (static::$_cleanUpListenerMap[$trackingId])($event, $query);
+                $result = (static::$_cleanUpListenerMap[$trackingId])($event, $query);
+                $event->setResult($result);
             };
         }
 
@@ -257,7 +260,7 @@ trait PartitionableSelectLoaderTrait
             ) use (
                 $removals,
                 $processedStateOptionName
-            ): SelectQuery {
+            ): void {
                 if ($removals['limit']) {
                     $query->limit(null);
                 }
@@ -272,7 +275,7 @@ trait PartitionableSelectLoaderTrait
 
                 $query->applyOptions([$processedStateOptionName => true]);
 
-                return $query;
+                $event->setResult($query);
             };
 
             static::$_cleanUpListenerMap[$trackingId] = $listener;

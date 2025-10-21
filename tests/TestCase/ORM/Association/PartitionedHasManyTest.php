@@ -485,7 +485,7 @@ class PartitionedHasManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, SelectQuery $query, ArrayObject $options) {
+            ->on('Model.beforeFind', function ($event, SelectQuery $query, ArrayObject $options): void {
                 if (($options['partitionableQueryType'] ?? null) === 'fetcher') {
                     $query
                         ->limit(2)
@@ -494,7 +494,7 @@ class PartitionedHasManyTest extends TestCase
                         ]);
                 }
 
-                return $query;
+                $event->setResult($query);
             });
 
         $query = $this->_articlesTable
@@ -527,10 +527,11 @@ class PartitionedHasManyTest extends TestCase
 
         $association
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
-                return $query->applyOptions([
+            ->on('Model.beforeFind', function ($event, SelectQuery $query): void {
+                $query->applyOptions([
                     PartitionableSelectLoader::class . '_trackingId' => null,
                 ]);
+                $event->setResult($query);
             });
 
         $query->toArray();
@@ -554,10 +555,11 @@ class PartitionedHasManyTest extends TestCase
         $this->_articlesTable
             ->getAssociation('TopComments')
             ->getEventManager()
-            ->on('Model.beforeFind', function ($event, SelectQuery $query) {
-                return $query
+            ->on('Model.beforeFind', function ($event, SelectQuery $query): void {
+                 $query
                     ->limit(2)
                     ->offset(3);
+                $event->setResult($query);
             });
 
         $query = $this->_articlesTable
